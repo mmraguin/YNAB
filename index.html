@@ -392,33 +392,42 @@ function showError(msg) {
 function parseAll(ynabRaw, txnRaw) {
   const m = viewMonth.getMonth();
   const y = viewMonth.getFullYear();
-  const mName = MONTHS[m];
 
   // ── Budget from YNAB tab ──
-  // Row 2 (idx 1): month headers
-  // Each month block has columns: Funded, Expenses, Rollover, Available, Needed
-  const headerRow = ynabRaw[1] || [];
-  let monthCol = -1;
-  for (let c = 0; c < headerRow.length; c++) {
-    if (String(headerRow[c]||'').trim() === mName) { monthCol = c; break; }
-  }
+  // Structure: each row = one category for one month
+  // Col A=BudgetRowID, B=GroupKey, C=GroupID, D=CategoryID, E=GroupSort
+  // Col F=MonthStart (text: "January"), G=Date (1/1/2026), H=Group, I=Category
+  // Col J=Goal, K=Funded, L=Expenses, M=Rollover, N=Available, O=Needed
 
-  const budgetMap  = {}; // cat → funded
-  const rolloverMap= {}; // cat → rollover
-  const availableMap={};// cat → available (from YNAB formula)
+  const budgetMap   = {}; // cat → funded
+  const rolloverMap = {}; // cat → rollover
+  const availableMap= {}; // cat → available
+  const expensesMap = {}; // cat → expenses (from YNAB, not transactions)
+  const neededMap   = {}; // cat → needed
 
-  if (monthCol >= 0) {
-    for (let r = 11; r < ynabRaw.length; r++) {
-      const row  = ynabRaw[r] || [];
-      const cat  = String(row[1]||'').trim();
-      if (!cat || GROUP_ORDER.includes(cat) || cat==='Income') continue;
-      const funded   = parseNum(row[monthCol]);
-      const rollover = parseNum(row[monthCol+2]);
-      const avail    = parseNum(row[monthCol+3]);
-      if (funded !== 0) budgetMap[cat]   = funded;
-      if (rollover!==0) rolloverMap[cat] = rollover;
-      availableMap[cat] = avail; // could be 0
-    }
+  for (let r = 1; r < ynabRaw.length; r++) {
+    const row      = ynabRaw[r] || [];
+    if (!row.length) continue;
+
+    const monthName = String(row[5]||'').trim(); // col F = MonthStart
+    const cat       = String(row[8]||'').trim(); // col I = Category
+    const group     = String(row[7]||'').trim(); // col H = Group
+
+    if (!cat || !monthName) continue;
+
+    // Match month: check col F (text) against current month name
+    // Also support col G (date like "1/1/2026" or "2/1/2026")
+    const rowDate   = parseTxnDate(String(row[6]||'').trim()); // col G = Date
+    const matchByDate = rowDate && rowDate.getMonth()===m && rowDate.getFullYear()===y;
+    const matchByName = monthName === MONTHS[m];
+
+    if (!matchByDate && !matchByName) continue;
+
+    budgetMap[cat]    = parseNum(row[10]); // col K = Funded
+    expensesMap[cat]  = parseNum(row[11]); // col L = Expenses
+    rolloverMap[cat]  = parseNum(row[12]); // col M = Rollover
+    availableMap[cat] = parseNum(row[13]); // col N = Available
+    neededMap[cat]    = parseNum(row[14]); // col O = Needed
   }
 
   // ── Transactions ──
@@ -458,18 +467,18 @@ function parseAll(ynabRaw, txnRaw) {
     }
   }
 
-  // Build category objects
-  const allCats = new Set([...Object.keys(budgetMap), ...Object.keys(spentMap), ...Object.keys(CATEGORY_TO_GROUP).filter(c=>!INCOME_CATS.includes(c))]);
+  // Build category objects — use YNAB sheet as source of truth for budget numbers
+  const allCats = new Set([...Object.keys(budgetMap), ...Object.keys(availableMap)]);
   const categories = [];
   for (const cat of allCats) {
     if (INCOME_CATS.includes(cat)) continue;
     const group     = CATEGORY_TO_GROUP[cat] || 'Other';
-    const funded    = budgetMap[cat]   || 0;
-    const rollover  = rolloverMap[cat] || 0;
-    const expenses  = spentMap[cat]    || 0;
-    // Use YNAB's available if we have it, otherwise compute
+    const funded    = budgetMap[cat]    || 0;
+    const rollover  = rolloverMap[cat]  || 0;
+    const expenses  = Math.abs(expensesMap[cat]  || spentMap[cat] || 0);
     const available = availableMap.hasOwnProperty(cat) ? availableMap[cat] : (funded + rollover - expenses);
-    const pct       = (funded+rollover) > 0 ? Math.min((expenses/(funded+rollover))*100,100) : (expenses>0?100:0);
+    const base      = funded + rollover;
+    const pct       = base > 0 ? Math.min((expenses/base)*100,100) : (expenses>0?100:0);
     const txns      = monthTxns.filter(t=>t.category===cat && t.type!=='Income');
     categories.push({ cat, group, funded, rollover, expenses, available, pct, txns });
   }
