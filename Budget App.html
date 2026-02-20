@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Budget</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Bricolage+Grotesque:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0c0c0f;
+  --surface: #141418;
+  --surface2: #1c1c22;
+  --surface3: #242430;
+  --border: #26262e;
+  --border2: #32323c;
+  --accent: #00c9a7;
+  --accent-dim: rgba(0,201,167,0.08);
+  --accent-border: rgba(0,201,167,0.25);
+  --text: #eeeef2;
+  --text2: #8888a0;
+  --muted: #55556a;
+  --danger: #ff5c5c;
+  --danger-dim: rgba(255,92,92,0.08);
+  --danger-border: rgba(255,92,92,0.2);
+  --income: #00c9a7;
+  --expense: #ff6b6b;
+  --warn: #f0a500;
+  --warn-dim: rgba(240,165,0,0.08);
+  --warn-border: rgba(240,165,0,0.25);
+  --purple: #a78bfa;
+  --tab-h: 64px;
+  --safe: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--text); height: 100%; overflow: hidden; display: flex; justify-content: center; }
+
+.app { width: 100%; max-width: 430px; height: 100%; display: flex; flex-direction: column; position: relative; }
+
+/* ── HEADER ── */
+.header { padding: 16px 20px 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg); }
+.wordmark { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+.wordmark em { color: var(--accent); font-style: normal; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.hbtn { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; transition: all 0.15s; }
+.hbtn:active { transform: scale(0.9); }
+.month-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border2); border-radius: 20px; padding: 5px 12px; cursor: default; }
+.month-arrow { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; transition: color 0.15s; }
+.month-arrow:active { color: var(--accent); }
+.month-text { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text); min-width: 90px; text-align: center; }
+
+/* ── SCROLL AREA ── */
+.scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ── TABS ── */
+.tabbar { height: var(--tab-h); flex-shrink: 0; border-top: 1px solid var(--border); background: var(--surface); display: flex; padding-bottom: var(--safe); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all 0.15s; color: var(--muted); padding-top: 6px; }
+.tab:active { transform: scale(0.92); }
+.tab.active { color: var(--accent); }
+.tab-icon { font-size: 20px; line-height: 1; }
+.tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
+
+/* ── PAGE ── */
+.page { display: none; flex-direction: column; padding: 16px 16px 24px; gap: 10px; animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1); }
+.page.active { display: flex; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── LOADING / ERROR ── */
+.state-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.pulse-ring { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
+.pulse-ring::before, .pulse-ring::after { content: ''; position: absolute; border: 1.5px solid var(--accent); border-radius: 50%; animation: pout 1.4s ease-out infinite; }
+.pulse-ring::after { animation-delay: 0.6s; }
+@keyframes pout { 0% { width: 10px; height: 10px; opacity: 1; } 100% { width: 40px; height: 40px; opacity: 0; } }
+.pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.state-text { font-size: 13px; color: var(--text2); }
+.error-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--danger); }
+.btn-retry { background: var(--danger); color: #fff; border: none; border-radius: 10px; padding: 10px 24px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* ── SECTION LABEL ── */
+.section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 4px 4px 2px; }
+
+/* ── SUMMARY HERO ── */
+.hero { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(0,201,167,0.12) 0%, transparent 70%); pointer-events: none; }
+.hero-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.hero-amount { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 16px; }
+.hero-amount.pos { color: var(--income); }
+.hero-amount.neg { color: var(--expense); }
+.hero-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+.hstat { text-align: center; padding: 0 8px; border-right: 1px solid var(--border); }
+.hstat:last-child { border-right: none; }
+.hstat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.hstat-val { font-size: 13px; font-weight: 600; }
+.hstat-val.income-c { color: var(--income); }
+.hstat-val.expense-c { color: var(--expense); }
+.hstat-val.neutral-c { color: var(--text2); }
+.hero-bar-wrap { margin-top: 14px; }
+.bar-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.bar-pct { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2); }
+.bar-track { height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(0.22,1,0.36,1); }
+.bar-fill.ok   { background: var(--accent); }
+.bar-fill.warn { background: var(--warn); }
+.bar-fill.over { background: var(--expense); }
+
+/* ── GROUP ROW ── */
+.group-block { display: flex; flex-direction: column; gap: 2px; }
+.group-header-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 4px; }
+.group-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.01em; color: var(--text2); }
+.group-badge { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+.group-badge.pos { background: rgba(0,201,167,0.1); color: var(--income); border: 1px solid var(--accent-border); }
+.group-badge.neg { background: var(--danger-dim); color: var(--expense); border: 1px solid var(--danger-border); }
+.group-badge.warn { background: var(--warn-dim); color: var(--warn); border: 1px solid var(--warn-border); }
+.group-badge.neutral { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
+
+/* ── CATEGORY ROW ── */
+.cat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1) both; }
+.cat-card:active { transform: scale(0.985); }
+.cat-card.over  { border-color: var(--danger-border); }
+.cat-card.warn  { border-color: var(--warn-border); }
+.cat-card.ok    { border-color: var(--border); }
+.cat-main { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+.cat-left { display: flex; flex-direction: column; gap: 2px; }
+.cat-name { font-size: 14px; font-weight: 600; }
+.cat-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.cat-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.cat-available { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+.cat-available.pos  { color: var(--income); }
+.cat-available.neg  { color: var(--expense); }
+.cat-available.zero { color: var(--muted); }
+.cat-spent-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.cat-progress { height: 3px; background: var(--surface3); }
+.cat-progress-fill { height: 100%; transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+
+/* ── DETAIL PANEL ── */
+.detail-panel { background: var(--surface2); border-top: 1px solid var(--border); overflow: hidden; max-height: 0; transition: max-height 0.3s cubic-bezier(0.22,1,0.36,1); }
+.detail-panel.open { max-height: 500px; }
+.detail-inner { padding: 14px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.detail-stat { background: var(--surface3); border-radius: 10px; padding: 10px 12px; }
+.detail-stat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.detail-stat-val { font-size: 15px; font-weight: 700; }
+.detail-stat-val.income-c { color: var(--income); }
+.detail-stat-val.expense-c { color: var(--expense); }
+.detail-stat-val.neutral-c { color: var(--text2); }
+.detail-stat-val.warn-c { color: var(--warn); }
+.detail-txns-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.detail-txn { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.detail-txn:last-child { border-bottom: none; }
+.dtxn-left { display: flex; flex-direction: column; gap: 2px; }
+.dtxn-merchant { font-size: 13px; font-weight: 500; }
+.dtxn-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.dtxn-amt { font-size: 13px; font-weight: 600; color: var(--expense); }
+.dtxn-empty { font-size: 12px; color: var(--muted); text-align: center; padding: 10px 0; }
+
+/* ── SPENDING TAB ── */
+.month-summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.month-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.month-row:last-child { border-bottom: none; }
+.month-row:active { background: var(--surface2); }
+.month-row-label { font-size: 14px; font-weight: 600; }
+.month-row-amt { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+.month-row-amt.neg { color: var(--expense); }
+.month-row-amt.pos { color: var(--income); }
+.chevron { color: var(--muted); font-size: 12px; margin-left: 6px; }
+
+/* ── SPENDING BREAKDOWN ── */
+.breakdown-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.breakdown-row:last-child { border-bottom: none; }
+.breakdown-row:active { background: var(--surface2); }
+.breakdown-name { font-size: 13px; font-weight: 600; }
+.breakdown-amt { font-family: 'DM Mono', monospace; font-size: 12px; }
+.breakdown-amt.neg { color: var(--expense); }
+.breakdown-amt.pos { color: var(--income); }
+
+/* ── DATE-GROUPED TRANSACTIONS ── */
+.date-group { display: flex; flex-direction: column; gap: 0; }
+.date-group-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 6px; }
+.date-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); font-weight: 500; }
+.date-total { font-family: 'DM Mono', monospace; font-size: 11px; }
+.date-total.neg { color: var(--expense); }
+.date-total.pos { color: var(--income); }
+.txn-list { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.txn-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); animation: fadeUp 0.18s cubic-bezier(0.22,1,0.36,1) both; }
+.txn-row:last-child { border-bottom: none; }
+.txn-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.txn-merchant { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.txn-cat { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.txn-via { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.txn-amt { font-size: 13px; font-weight: 600; flex-shrink: 0; margin-left: 10px; }
+.txn-amt.expense { color: var(--expense); }
+.txn-amt.income  { color: var(--income); }
+
+/* ── ACCOUNTS ── */
+.account-list { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.account-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.account-row:last-child { border-bottom: none; }
+.account-row:active { background: var(--surface2); }
+.account-name { font-size: 14px; font-weight: 600; }
+.account-bal { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+.account-bal.pos { color: var(--income); }
+.account-bal.neg { color: var(--expense); }
+.account-bal.zero { color: var(--muted); }
+.account-txn-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* ── STATUS ── */
+.status-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+.status-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.status-row:last-child { border-bottom: none; }
+.status-key { font-size: 13px; color: var(--text2); }
+.status-val { font-size: 13px; font-weight: 600; }
+.status-val.pos  { color: var(--income); }
+.status-val.neg  { color: var(--expense); }
+.status-val.warn { color: var(--warn); }
+
+/* ── BACK BUTTON ── */
+.back-bar { display: flex; align-items: center; gap: 8px; padding: 0 0 4px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 600; transition: color 0.15s; }
+.back-bar:hover { color: var(--accent); }
+.back-arrow { font-size: 16px; }
+
+/* ── CHIP ── */
+.chip { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; font-weight: 500; }
+.chip.ok   { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+.chip.warn { background: var(--warn-dim); color: var(--warn); border: 1px solid var(--warn-border); }
+.chip.over { background: var(--danger-dim); color: var(--expense); border: 1px solid var(--danger-border); }
+
+/* ── REFRESH HINT ── */
+.refresh-hint { text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); padding: 8px 0 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="wordmark">YNA<em>B</em></div>
+    <div class="header-right">
+      <div class="month-pill">
+        <button class="month-arrow" onclick="changeMonth(-1)">‹</button>
+        <div class="month-text" id="month-text">—</div>
+        <button class="month-arrow" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="hbtn" onclick="loadData()" title="Refresh">↺</div>
+    </div>
+  </div>
+
+  <div class="scroll-area" id="scroll-area">
+    <!-- PLAN PAGE -->
+    <div class="page active" id="page-plan">
+      <div id="plan-content">
+        <div class="state-card">
+          <div class="pulse-ring"><div class="pulse-dot"></div></div>
+          <div class="state-text">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPENDING PAGE -->
+    <div class="page" id="page-spending">
+      <div id="spending-content"></div>
+    </div>
+
+    <!-- ACCOUNTS PAGE -->
+    <div class="page" id="page-accounts">
+      <div id="accounts-content"></div>
+    </div>
+
+    <!-- STATUS PAGE -->
+    <div class="page" id="page-status">
+      <div id="status-content"></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active" data-tab="plan" onclick="switchTab('plan')">
+      <div class="tab-icon">💰</div>
+      <div class="tab-label">Plan</div>
+    </div>
+    <div class="tab" data-tab="spending" onclick="switchTab('spending')">
+      <div class="tab-icon">📋</div>
+      <div class="tab-label">Spending</div>
+    </div>
+    <div class="tab" data-tab="accounts" onclick="switchTab('accounts')">
+      <div class="tab-icon">🏦</div>
+      <div class="tab-label">Accounts</div>
+    </div>
+    <div class="tab" data-tab="status" onclick="switchTab('status')">
+      <div class="tab-icon">📊</div>
+      <div class="tab-label">Status</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbwkz_1GC0BJP7BH42WGAJmKk7Oj0SjxTcux89JH1Khefqdn2HMxemjMNGUr5ysMWEc92A/exec';
+
+const CATEGORY_TO_GROUP = {
+  'Salary':'Income','IOU':'Income',
+  'Electricity':'Home','Groceries':'Home','Lulay':'Home',
+  'Pet Food':'Pets','Grooming':'Pets','Litter':'Pets','Misc':'Pets','Vet':'Pets',
+  'Doctor':'Health','Supplements':'Health','Therapy':'Health','Medicine':'Health','Lab Tests':'Health','Eyes':'Health',
+  'Cellphone':'Quality Of Life','Eating Out':'Quality Of Life','Car':'Quality Of Life','Self Care':'Quality Of Life',
+  'Social':'Quality Of Life','Shopping':'Quality Of Life','Transpo':'Quality Of Life','Others':'Quality Of Life',
+  'Stellar Rebels':'Stellar Rebels',
+  'Digital Subscriptions':'Sinking','Gifts':'Sinking','Car Maintenance':'Sinking','Home Maintenance':'Sinking',
+  'Family Emergency':'Emergency','Medical Emergency':'Emergency','Pet Emergency':'Emergency','Job Loss':'Emergency',
+  'Tech Fund':'Goals','Beauty Fund':'Goals','Vacation Fund':'Goals',
+};
+
+const GROUP_ORDER = ['Income','Home','Pets','Health','Quality Of Life','Stellar Rebels','Sinking','Emergency','Goals'];
+const GROUP_NUMS  = {'Income':'01','Home':'02','Pets':'03','Health':'04','Quality Of Life':'05','Stellar Rebels':'06','Sinking':'07','Emergency':'08','Goals':'09'};
+const INCOME_CATS = ['Salary','IOU'];
+const ACCOUNTS    = ['BDO','BPI','Cash','GCash','Maribank','Maya','UnionBank','UnionBank Credit'];
+const MONTHS      = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let viewMonth   = new Date(); viewMonth.setDate(1);
+let currentTab  = 'plan';
+let rawYnab     = null;
+let rawTxn      = null;
+let parsedData  = null;
+let openPanel   = null;
+// Spending sub-navigation
+let spendingView = 'months'; // 'months' | 'breakdown' | 'transactions'
+let spendingContext = null;  // { type: 'group'|'account'|'all', label, txns }
+
+// ── MONTH ─────────────────────────────────────────────────────────────────
+function updateMonthLabel() {
+  document.getElementById('month-text').textContent = `${MONTHS[viewMonth.getMonth()].slice(0,3)} ${viewMonth.getFullYear()}`;
+}
+function changeMonth(d) {
+  viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+d, 1);
+  updateMonthLabel();
+  if (rawYnab && rawTxn) { parsedData = parseAll(rawYnab, rawTxn); renderCurrentTab(); }
+}
+
+// ── TAB ───────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `page-${tab}`));
+  document.getElementById('scroll-area').scrollTop = 0;
+  renderCurrentTab();
+}
+
+function renderCurrentTab() {
+  if (!parsedData) return;
+  if (currentTab === 'plan')     renderPlan();
+  if (currentTab === 'spending') renderSpending();
+  if (currentTab === 'accounts') renderAccounts();
+  if (currentTab === 'status')   renderStatus();
+}
+
+// ── FETCH ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  showLoading();
+  try {
+    const res  = await fetch(WEBHOOK);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json.ynab || !json.txn) throw new Error('doGet not returning ynab/txn. Redeploy your Apps Script.');
+    rawYnab    = json.ynab;
+    rawTxn     = json.txn;
+    parsedData = parseAll(rawYnab, rawTxn);
+    renderCurrentTab();
+  } catch(e) { showError(e.message); }
+}
+
+function showLoading() {
+  ['plan','spending','accounts','status'].forEach(t => {
+    document.getElementById(`${t}-content`).innerHTML = `
+      <div class="state-card">
+        <div class="pulse-ring"><div class="pulse-dot"></div></div>
+        <div class="state-text">Loading…</div>
+      </div>`;
+  });
+}
+
+function showError(msg) {
+  document.getElementById('plan-content').innerHTML = `
+    <div class="state-card">
+      <div class="error-title">Couldn't load data</div>
+      <div class="state-text">${msg}</div>
+      <button class="btn-retry" onclick="loadData()">Retry</button>
+    </div>`;
+}
+
+// ── PARSE ─────────────────────────────────────────────────────────────────
+function parseAll(ynabRaw, txnRaw) {
+  const m = viewMonth.getMonth();
+  const y = viewMonth.getFullYear();
+  const mName = MONTHS[m];
+
+  // ── Budget from YNAB tab ──
+  // Row 2 (idx 1): month headers
+  // Each month block has columns: Funded, Expenses, Rollover, Available, Needed
+  const headerRow = ynabRaw[1] || [];
+  let monthCol = -1;
+  for (let c = 0; c < headerRow.length; c++) {
+    if (String(headerRow[c]||'').trim() === mName) { monthCol = c; break; }
+  }
+
+  const budgetMap  = {}; // cat → funded
+  const rolloverMap= {}; // cat → rollover
+  const availableMap={};// cat → available (from YNAB formula)
+
+  if (monthCol >= 0) {
+    for (let r = 11; r < ynabRaw.length; r++) {
+      const row  = ynabRaw[r] || [];
+      const cat  = String(row[1]||'').trim();
+      if (!cat || GROUP_ORDER.includes(cat) || cat==='Income') continue;
+      const funded   = parseNum(row[monthCol]);
+      const rollover = parseNum(row[monthCol+2]);
+      const avail    = parseNum(row[monthCol+3]);
+      if (funded !== 0) budgetMap[cat]   = funded;
+      if (rollover!==0) rolloverMap[cat] = rollover;
+      availableMap[cat] = avail; // could be 0
+    }
+  }
+
+  // ── Transactions ──
+  const allTxns = [];
+  for (let r = 1; r < txnRaw.length; r++) {
+    const row = txnRaw[r] || [];
+    if (!row.length) continue;
+    const type     = String(row[1]||'').trim();
+    const amount   = parseNum(String(row[2]||'0').replace(/,/g,''));
+    const dateStr  = String(row[3]||row[0]||'').trim();
+    const merchant = String(row[4]||'').trim();
+    const payment  = String(row[5]||'').trim();
+    const category = String(row[6]||'').trim();
+    const group    = String(row[7]||'').trim() || CATEGORY_TO_GROUP[category] || '';
+    const date     = parseTxnDate(dateStr);
+    if (!date) continue;
+    allTxns.push({ type, amount, date, merchant, payment, category, group });
+  }
+
+  // Filter to this month
+  const monthTxns = allTxns.filter(t => t.date.getMonth()===m && t.date.getFullYear()===y && t.type !== 'Balance' && t.type !== 'Transfer');
+
+  // Aggregate
+  const spentMap  = {};
+  const incomeTxns= [];
+  let totalIncome = 0;
+  let totalSpent  = 0;
+
+  for (const t of monthTxns) {
+    if (t.type === 'Income' || t.amount > 0) {
+      totalIncome += Math.abs(t.amount);
+      incomeTxns.push(t);
+    } else {
+      const spent = Math.abs(t.amount);
+      totalSpent += spent;
+      if (t.category) spentMap[t.category] = (spentMap[t.category]||0) + spent;
+    }
+  }
+
+  // Build category objects
+  const allCats = new Set([...Object.keys(budgetMap), ...Object.keys(spentMap), ...Object.keys(CATEGORY_TO_GROUP).filter(c=>!INCOME_CATS.includes(c))]);
+  const categories = [];
+  for (const cat of allCats) {
+    if (INCOME_CATS.includes(cat)) continue;
+    const group     = CATEGORY_TO_GROUP[cat] || 'Other';
+    const funded    = budgetMap[cat]   || 0;
+    const rollover  = rolloverMap[cat] || 0;
+    const expenses  = spentMap[cat]    || 0;
+    // Use YNAB's available if we have it, otherwise compute
+    const available = availableMap.hasOwnProperty(cat) ? availableMap[cat] : (funded + rollover - expenses);
+    const pct       = (funded+rollover) > 0 ? Math.min((expenses/(funded+rollover))*100,100) : (expenses>0?100:0);
+    const txns      = monthTxns.filter(t=>t.category===cat && t.type!=='Income');
+    categories.push({ cat, group, funded, rollover, expenses, available, pct, txns });
+  }
+
+  // Account balances (from Balance-type entries for all time, latest per account)
+  const accountTxns = {};
+  for (const acc of ACCOUNTS) {
+    accountTxns[acc] = allTxns.filter(t => t.payment === acc && t.type !== 'Balance' && t.date.getMonth()===m && t.date.getFullYear()===y);
+  }
+
+  // Spending by group this month
+  const groupSpending = {};
+  for (const t of monthTxns) {
+    if (t.type !== 'Income' && t.group) {
+      groupSpending[t.group] = (groupSpending[t.group]||0) + Math.abs(t.amount);
+    }
+  }
+
+  // Total budgeted
+  const totalBudgeted = Object.values(budgetMap).reduce((a,b)=>a+b,0);
+
+  return { categories, monthTxns, incomeTxns, totalIncome, totalSpent, totalBudgeted, groupSpending, accountTxns, spentMap };
+}
+
+// ── PLAN TAB ──────────────────────────────────────────────────────────────
+function renderPlan() {
+  const d   = parsedData;
+  const el  = document.getElementById('plan-content');
+  const remaining   = d.totalBudgeted - d.totalSpent;
+  const masterPct   = d.totalBudgeted > 0 ? Math.min((d.totalSpent/d.totalBudgeted)*100,100) : 0;
+  const barClass    = masterPct>=100?'over':masterPct>=80?'warn':'ok';
+  const remClass    = remaining<0?'neg':'pos';
+  const statusChip  = remaining<0?'<span class="chip over">Overspent</span>':masterPct>=80?'<span class="chip warn">Watch it</span>':'<span class="chip ok">On track</span>';
+
+  // Group categories
+  const byGroup = {};
+  for (const item of d.categories) {
+    if (!byGroup[item.group]) byGroup[item.group] = [];
+    byGroup[item.group].push(item);
+  }
+
+  const groups = [...GROUP_ORDER.filter(g=>byGroup[g]), ...Object.keys(byGroup).filter(g=>!GROUP_ORDER.includes(g))];
+
+  let html = `
+    <div class="hero">
+      <div class="hero-label">Available This Month</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="hero-amount ${remClass}">${remaining<0?'−':''}${fmtShort(Math.abs(remaining))}</div>
+        ${statusChip}
+      </div>
+      <div class="hero-stats">
+        <div class="hstat"><div class="hstat-label">Budgeted</div><div class="hstat-val neutral-c">${fmtShort(d.totalBudgeted)}</div></div>
+        <div class="hstat"><div class="hstat-label">Spent</div><div class="hstat-val expense-c">${fmtShort(d.totalSpent)}</div></div>
+        <div class="hstat"><div class="hstat-label">Income</div><div class="hstat-val income-c">${fmtShort(d.totalIncome)}</div></div>
+      </div>
+      <div class="hero-bar-wrap">
+        <div class="bar-row"><span class="bar-pct">${Math.round(masterPct)}% used</span><span class="bar-pct">${fmtShort(d.totalSpent)} / ${fmtShort(d.totalBudgeted)}</span></div>
+        <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${masterPct}%"></div></div>
+      </div>
+    </div>`;
+
+  let delay = 0;
+  for (const group of groups) {
+    const items = byGroup[group];
+    if (!items?.length) continue;
+    const gSpent    = items.reduce((s,i)=>s+i.expenses,0);
+    const gFunded   = items.reduce((s,i)=>s+i.funded+i.rollover,0);
+    const gAvail    = items.reduce((s,i)=>s+i.available,0);
+    const gBadge    = gAvail<0?'neg':gAvail>0?'pos':'neutral';
+    const num       = GROUP_NUMS[group]||'';
+
+    html += `<div class="group-block">
+      <div class="group-header-row">
+        <div class="group-title">${num?`${num} — `:''}${group}</div>
+        <div class="group-badge ${gBadge}">${gAvail<0?'−':''}${fmtShort(Math.abs(gAvail))}</div>
+      </div>`;
+
+    for (const item of items.sort((a,b)=>Math.abs(b.available)-Math.abs(a.available))) {
+      const status   = item.available<0?'over':item.pct>=80?'warn':'ok';
+      const remClass2= item.available<0?'neg':item.available===0?'zero':'pos';
+      const barC     = item.available<0?'over':item.pct>=80?'warn':'ok';
+      const id       = `panel-${item.cat.replace(/\s+/g,'-')}`;
+
+      html += `<div class="cat-card ${status}" style="animation-delay:${delay}ms" onclick="togglePanel('${id}')">
+        <div class="cat-main">
+          <div class="cat-left">
+            <div class="cat-name">${item.cat}</div>
+            <div class="cat-sub">${item.funded>0?`${fmtShort(item.funded)} funded`:'no budget'}${item.rollover?` · +${fmtShort(item.rollover)} rollover`:''}</div>
+          </div>
+          <div class="cat-right">
+            <div class="cat-available ${remClass2}">${item.available<0?'−':''}${fmtShort(Math.abs(item.available))}</div>
+            <div class="cat-spent-label">${item.expenses>0?`${fmtShort(item.expenses)} spent`:item.txns.length?`${item.txns.length} txn`:'no activity'}</div>
+          </div>
+        </div>
+        ${item.funded>0||item.rollover>0?`<div class="cat-progress"><div class="cat-progress-fill bar-fill ${barC}" style="width:${item.pct}%"></div></div>`:''}
+        <div class="detail-panel" id="${id}">
+          <div class="detail-inner">
+            <div class="detail-grid">
+              <div class="detail-stat"><div class="detail-stat-label">Funded</div><div class="detail-stat-val income-c">${fmtFull(item.funded)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Expenses</div><div class="detail-stat-val expense-c">${item.expenses>0?'−':''}${fmtFull(item.expenses)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Rollover</div><div class="detail-stat-val neutral-c">${fmtFull(item.rollover)}</div></div>
+              <div class="detail-stat"><div class="detail-stat-label">Available</div><div class="detail-stat-val ${item.available<0?'expense-c':item.available===0?'neutral-c':'income-c'}">${item.available<0?'−':''}${fmtFull(Math.abs(item.available))}</div></div>
+            </div>
+            ${item.txns.length?`
+            <div class="detail-txns-label">Transactions · ${item.txns.length}</div>
+            ${item.txns.sort((a,b)=>b.date-a.date).map(t=>`
+              <div class="detail-txn">
+                <div class="dtxn-left">
+                  <div class="dtxn-merchant">${t.merchant||'—'}</div>
+                  <div class="dtxn-meta">${formatDate(t.date)} · ${t.payment}</div>
+                </div>
+                <div class="dtxn-amt">−${fmtFull(Math.abs(t.amount))}</div>
+              </div>`).join('')}`
+            :`<div class="dtxn-empty">No transactions this month</div>`}
+          </div>
+        </div>
+      </div>`;
+      delay += 25;
+    }
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function togglePanel(id) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  document.querySelectorAll('.detail-panel.open').forEach(p=>p.classList.remove('open'));
+  if (!isOpen) panel.classList.add('open');
+}
+
+// ── SPENDING TAB ──────────────────────────────────────────────────────────
+function renderSpending() {
+  const el = document.getElementById('spending-content');
+  spendingView = 'months';
+  el.innerHTML = buildSpendingMonths();
+}
+
+function buildSpendingMonths() {
+  const d = parsedData;
+  // Show current month + previous (from all txns)
+  return `
+    <div class="section-label">Monthly</div>
+    <div class="month-summary-card">
+      <div class="month-row" onclick="showSpendingBreakdown('${MONTHS[viewMonth.getMonth()]} ${viewMonth.getFullYear()}', ${d.totalSpent})">
+        <span class="month-row-label">${MONTHS[viewMonth.getMonth()].slice(0,3)} ${viewMonth.getFullYear()}</span>
+        <span>
+          <span class="month-row-amt neg">${fmtFull(d.totalSpent)}</span>
+          <span class="chevron">›</span>
+        </span>
+      </div>
+    </div>`;
+}
+
+function showSpendingBreakdown(label, total) {
+  const d  = parsedData;
+  const el = document.getElementById('spending-content');
+  const groups = GROUP_ORDER.filter(g=>d.groupSpending[g]>0);
+
+  let html = `
+    <div class="back-bar" onclick="renderSpending()"><span class="back-arrow">‹</span> Breakdown</div>
+    <div class="breakdown-card">
+      <div class="breakdown-row" onclick="showGroupTxns('All','all')">
+        <span class="breakdown-name">All</span>
+        <span><span class="breakdown-amt neg">${fmtFull(d.totalSpent)}</span><span class="chevron">›</span></span>
+      </div>
+      ${groups.map(g=>`
+        <div class="breakdown-row" onclick="showGroupTxns('${g}','${g}')">
+          <span class="breakdown-name">${GROUP_NUMS[g]?`${GROUP_NUMS[g]} — `:''}${g}</span>
+          <span><span class="breakdown-amt neg">${fmtFull(d.groupSpending[g])}</span><span class="chevron">›</span></span>
+        </div>`).join('')}
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+function showGroupTxns(label, groupKey) {
+  const d   = parsedData;
+  const txns = groupKey==='all'
+    ? d.monthTxns.filter(t=>t.type!=='Income')
+    : d.monthTxns.filter(t=>t.group===groupKey && t.type!=='Income');
+
+  const el = document.getElementById('spending-content');
+  el.innerHTML = `
+    <div class="back-bar" onclick="showSpendingBreakdown()"><span class="back-arrow">‹</span> ${label}</div>
+    ${buildDateGroupedTxns(txns)}`;
+}
+
+function buildDateGroupedTxns(txns) {
+  if (!txns.length) return `<div class="state-card"><div class="state-text">No transactions</div></div>`;
+  const sorted = [...txns].sort((a,b)=>b.date-a.date);
+  const byDate = {};
+  for (const t of sorted) {
+    const key = t.date.toLocaleDateString('en-PH',{month:'numeric',day:'numeric',year:'numeric'});
+    if (!byDate[key]) byDate[key] = [];
+    byDate[key].push(t);
+  }
+  return Object.entries(byDate).map(([date, ts],i) => {
+    const dayTotal = ts.reduce((s,t)=>s+t.amount,0);
+    return `<div class="date-group">
+      <div class="date-group-header">
+        <span class="date-label">${date}</span>
+        <span class="date-total ${dayTotal<0?'neg':'pos'}">${dayTotal<0?'':'+'}${fmtFull(Math.abs(dayTotal))}</span>
+      </div>
+      <div class="txn-list">
+        ${ts.map((t,j)=>`
+          <div class="txn-row" style="animation-delay:${(i*3+j)*20}ms">
+            <div class="txn-left">
+              <div class="txn-merchant">${t.merchant||'—'}</div>
+              <div class="txn-cat">${t.category||t.group||'—'}</div>
+            </div>
+            <div class="txn-amt ${t.amount<0?'expense':'income'}">${t.amount<0?'−':'+'}${fmtFull(Math.abs(t.amount))}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── ACCOUNTS TAB ──────────────────────────────────────────────────────────
+function renderAccounts() {
+  const d   = parsedData;
+  const el  = document.getElementById('accounts-content');
+
+  const rows = ACCOUNTS.map(acc => {
+    const txns   = d.accountTxns[acc] || [];
+    const net    = txns.reduce((s,t)=>s+t.amount,0);
+    const balClass = net>0?'pos':net<0?'neg':'zero';
+    return `<div class="account-row" onclick="showAccountTxns('${acc}')">
+      <div>
+        <div class="account-name">${acc}</div>
+        <div class="account-txn-count">${txns.length} txn${txns.length!==1?'s':''} this month</div>
+      </div>
+      <span>
+        <span class="account-bal ${balClass}">${net<0?'−':net>0?'+':''}${fmtFull(Math.abs(net))}</span>
+        <span class="chevron">›</span>
+      </span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="section-label">Accounts</div>
+    <div class="account-list">${rows}</div>`;
+}
+
+function showAccountTxns(acc) {
+  const d    = parsedData;
+  const txns = d.accountTxns[acc] || [];
+  const el   = document.getElementById('accounts-content');
+
+  el.innerHTML = `
+    <div class="back-bar" onclick="renderAccounts()"><span class="back-arrow">‹</span> ${acc}</div>
+    <div class="section-label">Related Txns · ${txns.length}</div>
+    ${buildDateGroupedTxns(txns)}`;
+}
+
+// ── STATUS TAB ────────────────────────────────────────────────────────────
+function renderStatus() {
+  const d   = parsedData;
+  const el  = document.getElementById('status-content');
+  const net = d.totalIncome - d.totalSpent;
+  const savingsRate = d.totalIncome > 0 ? ((net/d.totalIncome)*100).toFixed(1) : 0;
+  const overCats  = d.categories.filter(c=>c.available<0);
+  const warnCats  = d.categories.filter(c=>c.pct>=80&&c.available>=0);
+
+  el.innerHTML = `
+    <div class="section-label">${MONTHS[viewMonth.getMonth()]} ${viewMonth.getFullYear()}</div>
+    <div class="status-card">
+      <div class="status-row"><span class="status-key">Total Income</span><span class="status-val pos">${fmtFull(d.totalIncome)}</span></div>
+      <div class="status-row"><span class="status-key">Total Spent</span><span class="status-val neg">${fmtFull(d.totalSpent)}</span></div>
+      <div class="status-row"><span class="status-key">Net</span><span class="status-val ${net>=0?'pos':'neg'}">${net<0?'−':''}${fmtFull(Math.abs(net))}</span></div>
+      <div class="status-row"><span class="status-key">Savings Rate</span><span class="status-val ${parseFloat(savingsRate)>=20?'pos':parseFloat(savingsRate)>=10?'warn':'neg'}">${savingsRate}%</span></div>
+      <div class="status-row"><span class="status-key">Budgeted</span><span class="status-val">${fmtFull(d.totalBudgeted)}</span></div>
+      <div class="status-row"><span class="status-key">Transactions</span><span class="status-val">${d.monthTxns.length}</span></div>
+    </div>
+    ${overCats.length?`
+    <div class="section-label">⚠ Overspent (${overCats.length})</div>
+    <div class="status-card">
+      ${overCats.map(c=>`<div class="status-row">
+        <span class="status-key">${c.cat}</span>
+        <span class="status-val neg">−${fmtFull(Math.abs(c.available))}</span>
+      </div>`).join('')}
+    </div>`:''}
+    ${warnCats.length?`
+    <div class="section-label">⚡ Almost Out (${warnCats.length})</div>
+    <div class="status-card">
+      ${warnCats.map(c=>`<div class="status-row">
+        <span class="status-key">${c.cat}</span>
+        <span class="status-val warn">${fmtFull(c.available)} left</span>
+      </div>`).join('')}
+    </div>`:''}`;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function parseNum(v) { return parseFloat(String(v||'0').replace(/[^0-9.\-]/g,''))||0; }
+
+function parseTxnDate(str) {
+  if (!str) return null;
+  const s = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (s) return new Date(+s[3],+s[1]-1,+s[2]);
+  const i = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (i) return new Date(+i[1],+i[2]-1,+i[3]);
+  return null;
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
+}
+
+function fmtFull(n) {
+  return '₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function fmtShort(n) {
+  const a = Math.abs(n);
+  if (a>=1000) return '₱'+(a/1000).toLocaleString('en-PH',{minimumFractionDigits:1,maximumFractionDigits:1})+'k';
+  return '₱'+a.toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+updateMonthLabel();
+loadData();
+</script>
+</body>
+</html>
