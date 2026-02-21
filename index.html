@@ -3,697 +3,1213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Budget</title>
+<title>tribe</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Bricolage+Grotesque:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg: #0c0c0f;
-  --surface: #141418;
-  --surface2: #1c1c22;
-  --surface3: #242430;
-  --border: #26262e;
-  --border2: #32323c;
-  --accent: #00c9a7;
-  --accent-dim: rgba(0,201,167,0.08);
-  --accent-border: rgba(0,201,167,0.25);
-  --text: #eeeef2;
-  --text2: #8888a0;
-  --muted: #55556a;
-  --danger: #ff5c5c;
-  --danger-dim: rgba(255,92,92,0.08);
-  --danger-border: rgba(255,92,92,0.2);
-  --income: #00c9a7;
-  --expense: #ff6b6b;
-  --warn: #f0a500;
-  --warn-dim: rgba(240,165,0,0.08);
-  --warn-border: rgba(240,165,0,0.25);
-  --purple: #a78bfa;
-  --tab-h: 64px;
-  --safe: env(safe-area-inset-bottom, 0px);
+  --bg:              #0b0b0d;
+  --surface:         #141416;
+  --surface2:        #1e1e22;
+  --surface3:        #28282e;
+  --border:          #2a2a30;
+  --border2:         #363640;
+  --accent:          #2a9d9f;
+  --accent-bright:   #5bbfc4;
+  --accent-dim:      rgba(42,157,159,0.10);
+  --accent-border:   rgba(42,157,159,0.25);
+  --text:            #ededf0;
+  --text2:           #9898a6;
+  --muted:           #60606e;
+  --income:          #4ade80;
+  --income-dim:      rgba(74,222,128,0.08);
+  --income-border:   rgba(74,222,128,0.20);
+  --expense:         #ff5c5c;
+  --expense-dim:     rgba(255,92,92,0.08);
+  --expense-border:  rgba(255,92,92,0.20);
+  --danger:          #e63946;
+  --transfer:        #b8a9e0;
+  --warn:            #c8922a;
+  --warn-dim:        rgba(200,146,42,0.08);
+  --warn-border:     rgba(200,146,42,0.25);
+  --tab-h:           60px;
+  --safe-b:          env(safe-area-inset-bottom, 0px);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html { height: 100%; }
-body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--text); height: 100%; overflow: hidden; display: flex; justify-content: center; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'DM Sans', sans-serif; font-variant-numeric: tabular-nums; background: var(--bg); color: var(--text); display: flex; justify-content: center; }
 
-.app { width: 100%; max-width: 430px; height: 100%; display: flex; flex-direction: column; position: relative; }
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.025;
+}
 
-/* ── HEADER ── */
-.header { padding: 16px 20px 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg); }
-.wordmark { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+.app { width: 100%; max-width: 430px; height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+/* HEADER */
+.header {
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: rgba(11,11,13,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: relative; z-index: 10;
+}
+.wordmark { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
 .wordmark em { color: var(--accent); font-style: normal; }
 .header-right { display: flex; gap: 8px; align-items: center; }
-.hbtn { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; transition: all 0.15s; }
-.hbtn:active { transform: scale(0.9); }
-.month-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border2); border-radius: 20px; padding: 5px 12px; cursor: default; }
-.month-arrow { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; transition: color 0.15s; }
-.month-arrow:active { color: var(--accent); }
-.month-text { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text); min-width: 90px; text-align: center; }
 
-/* ── SCROLL AREA ── */
-.scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
-.scroll-area::-webkit-scrollbar { display: none; }
+.month-nav { display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 8px; }
+.month-arrow { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; transition: color 0.15s; }
+.month-arrow:hover { color: var(--accent); }
+.month-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text); min-width: 76px; text-align: center; letter-spacing: 0.04em; }
 
-/* ── TABS ── */
-.tabbar { height: var(--tab-h); flex-shrink: 0; border-top: 1px solid var(--border); background: var(--surface); display: flex; padding-bottom: var(--safe); }
-.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all 0.15s; color: var(--muted); padding-top: 6px; }
+.hbtn { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.15s; user-select: none; }
+.hbtn:active { transform: scale(0.92); color: var(--accent); }
+.hbtn.debug-active { color: var(--warn); border-color: var(--warn-border); background: var(--warn-dim); }
+
+/* PAGES */
+.pages-wrap { flex: 1; overflow: hidden; position: relative; }
+.pages { display: flex; width: 400%; height: 100%; transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); }
+.page { width: 25%; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; flex-shrink: 0; }
+.page::-webkit-scrollbar { display: none; }
+.page-inner { padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 10px; min-height: 100%; }
+
+/* BOTTOM NAV */
+.tabbar {
+  flex-shrink: 0;
+  height: calc(var(--tab-h) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+  border-top: 1px solid var(--border);
+  background: rgba(20,20,22,0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  position: relative; z-index: 10;
+}
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: var(--muted); padding-top: 4px; transition: color 0.15s; user-select: none; }
 .tab:active { transform: scale(0.92); }
 .tab.active { color: var(--accent); }
-.tab-icon { font-size: 20px; line-height: 1; }
-.tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
+.tab-icon { width: 22px; height: 22px; position: relative; }
+.tab-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.01em; }
+.tab-badge { position: absolute; top: -3px; right: -6px; background: var(--expense); color: #fff; font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500; border-radius: 10px; padding: 1px 4px; min-width: 14px; text-align: center; }
 
-/* ── PAGE ── */
-.page { display: none; flex-direction: column; padding: 16px 16px 24px; gap: 10px; animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1); }
-.page.active { display: flex; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ── LOADING / ERROR ── */
-.state-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+/* LOADING / ERROR */
+.state-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 48px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .pulse-ring { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
 .pulse-ring::before, .pulse-ring::after { content: ''; position: absolute; border: 1.5px solid var(--accent); border-radius: 50%; animation: pout 1.4s ease-out infinite; }
 .pulse-ring::after { animation-delay: 0.6s; }
 @keyframes pout { 0% { width: 10px; height: 10px; opacity: 1; } 100% { width: 40px; height: 40px; opacity: 0; } }
 .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-.state-text { font-size: 13px; color: var(--text2); }
+.state-text { font-size: 13px; color: var(--text2); text-align: center; line-height: 1.5; }
 .error-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--danger); }
-.btn-retry { background: var(--danger); color: #fff; border: none; border-radius: 10px; padding: 10px 24px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-retry { background: var(--danger); color: #fff; border: none; border-radius: 10px; padding: 10px 24px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-/* ── SECTION LABEL ── */
-.section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 4px 4px 2px; }
+/* SECTION LABEL */
+.section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 2px 2px 0; }
 
-/* ── SUMMARY HERO ── */
-.hero { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; position: relative; overflow: hidden; }
-.hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(0,201,167,0.12) 0%, transparent 70%); pointer-events: none; }
-.hero-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-.hero-amount { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 16px; }
-.hero-amount.pos { color: var(--income); }
-.hero-amount.neg { color: var(--expense); }
-.hero-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
-.hstat { text-align: center; padding: 0 8px; border-right: 1px solid var(--border); }
+/* HERO CARD */
+.hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  position: relative; overflow: hidden;
+  animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1);
+}
+.hero-glow { position: absolute; top: -60px; left: -40px; width: 220px; height: 220px; border-radius: 50%; pointer-events: none; transition: background 0.5s ease; }
+.hero-glow.pos  { background: radial-gradient(circle, rgba(74,222,128,0.10) 0%, transparent 70%); }
+.hero-glow.warn { background: radial-gradient(circle, rgba(200,146,42,0.10) 0%, transparent 70%); }
+.hero-glow.neg  { background: radial-gradient(circle, rgba(255,92,92,0.10) 0%, transparent 70%); }
+.hero-top { position: relative; z-index: 1; margin-bottom: 16px; }
+.hero-meta-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.hero-amount-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.hero-amount { font-family: 'DM Sans', sans-serif; font-variant-numeric: tabular-nums; font-size: 38px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.hero-amount.pos  { color: var(--income); }
+.hero-amount.warn { color: var(--warn); }
+.hero-amount.neg  { color: var(--expense); }
+.status-chip { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; font-weight: 500; margin-top: 6px; }
+.status-chip.pos  { background: var(--income-dim); color: var(--income); border: 1px solid var(--income-border); }
+.status-chip.warn { background: var(--warn-dim); color: var(--warn); border: 1px solid var(--warn-border); }
+.status-chip.neg  { background: var(--expense-dim); color: var(--expense); border: 1px solid var(--expense-border); }
+.hero-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--border); padding-top: 14px; position: relative; z-index: 1; }
+.hstat { text-align: center; padding: 0 4px; border-right: 1px solid var(--border); }
 .hstat:last-child { border-right: none; }
-.hstat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
-.hstat-val { font-size: 13px; font-weight: 600; }
-.hstat-val.income-c { color: var(--income); }
+.hstat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.hstat-val { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hstat-val.income-c  { color: var(--income); }
 .hstat-val.expense-c { color: var(--expense); }
 .hstat-val.neutral-c { color: var(--text2); }
-.hero-bar-wrap { margin-top: 14px; }
-.bar-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-.bar-pct { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2); }
-.bar-track { height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
-.bar-fill { height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(0.22,1,0.36,1); }
-.bar-fill.ok   { background: var(--accent); }
-.bar-fill.warn { background: var(--warn); }
-.bar-fill.over { background: var(--expense); }
 
-/* ── GROUP ROW ── */
-.group-block { display: flex; flex-direction: column; gap: 2px; }
-.group-header-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 4px; }
-.group-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.01em; color: var(--text2); }
-.group-badge { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
-.group-badge.pos { background: rgba(0,201,167,0.1); color: var(--income); border: 1px solid var(--accent-border); }
-.group-badge.neg { background: var(--danger-dim); color: var(--expense); border: 1px solid var(--danger-border); }
-.group-badge.warn { background: var(--warn-dim); color: var(--warn); border: 1px solid var(--warn-border); }
-.group-badge.neutral { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
+/* ALERT BANNER */
+.alert-banner { border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1); }
+.alert-banner.expense { background: var(--expense-dim); border: 1px solid var(--expense-border); }
+.alert-banner.warn    { background: var(--warn-dim);    border: 1px solid var(--warn-border); }
+.alert-text { font-size: 12px; line-height: 1.4; }
+.alert-text strong { font-weight: 600; color: var(--text); display: block; margin-bottom: 1px; }
+.alert-text span { color: var(--text2); }
+.alert-dismiss { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; flex-shrink: 0; line-height: 1; padding: 2px; }
 
-/* ── CATEGORY ROW ── */
-.cat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1) both; }
+/* GROUP BLOCK */
+.group-block { display: flex; flex-direction: column; gap: 3px; }
+.group-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 4px; cursor: pointer; user-select: none; }
+.group-header:active { opacity: 0.7; }
+.group-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.group-toggle { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+.group-toggle.collapsed { transform: rotate(-90deg); }
+.group-available { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.group-available.pos  { color: var(--income); }
+.group-available.neg  { color: var(--expense); }
+.group-available.zero { color: var(--muted); }
+.group-cats { display: flex; flex-direction: column; gap: 3px; overflow: hidden; transition: all 0.25s cubic-bezier(0.22,1,0.36,1); }
+.group-cats.collapsed { max-height: 0 !important; opacity: 0; }
+
+/* CAT CARD */
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1) both;
+}
 .cat-card:active { transform: scale(0.985); }
-.cat-card.over  { border-color: var(--danger-border); }
-.cat-card.warn  { border-color: var(--warn-border); }
-.cat-card.ok    { border-color: var(--border); }
-.cat-main { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
-.cat-left { display: flex; flex-direction: column; gap: 2px; }
-.cat-name { font-size: 14px; font-weight: 600; }
+.cat-card.ok   { border-left-color: var(--income); }
+.cat-card.warn { border-left-color: var(--warn); border-color: var(--warn-border); background: var(--warn-dim); }
+.cat-card.over { border-left-color: var(--expense); border-color: var(--expense-border); background: var(--expense-dim); }
+.cat-card.zero { border-left-color: var(--muted); }
+.cat-main { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.cat-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.cat-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cat-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
-.cat-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.cat-available { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+.cat-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.cat-available { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .cat-available.pos  { color: var(--income); }
 .cat-available.neg  { color: var(--expense); }
 .cat-available.zero { color: var(--muted); }
-.cat-spent-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
-.cat-progress { height: 3px; background: var(--surface3); }
-.cat-progress-fill { height: 100%; transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+.cat-spent-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.cat-bar-track { height: 3px; background: var(--surface3); }
+.cat-bar-fill { height: 100%; transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+.cat-bar-fill.ok   { background: var(--accent); }
+.cat-bar-fill.warn { background: var(--warn); }
+.cat-bar-fill.over { background: var(--expense); }
 
-/* ── DETAIL PANEL ── */
-.detail-panel { background: var(--surface2); border-top: 1px solid var(--border); overflow: hidden; max-height: 0; transition: max-height 0.3s cubic-bezier(0.22,1,0.36,1); }
-.detail-panel.open { max-height: 500px; }
-.detail-inner { padding: 14px; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.detail-stat { background: var(--surface3); border-radius: 10px; padding: 10px 12px; }
-.detail-stat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-.detail-stat-val { font-size: 15px; font-weight: 700; }
-.detail-stat-val.income-c { color: var(--income); }
-.detail-stat-val.expense-c { color: var(--expense); }
-.detail-stat-val.neutral-c { color: var(--text2); }
-.detail-stat-val.warn-c { color: var(--warn); }
-.detail-txns-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+/* DETAIL PANEL */
+.detail-panel { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.22,1,0.36,1); background: var(--surface2); border-top: 1px solid var(--border); }
+.detail-panel.open { max-height: 600px; }
+.detail-inner { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.dstat { background: var(--surface3); border-radius: 10px; padding: 10px 12px; }
+.dstat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.dstat-val { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dstat-val.pos  { color: var(--income); }
+.dstat-val.neg  { color: var(--expense); }
+.dstat-val.warn { color: var(--warn); }
+.dstat-val.neutral { color: var(--text2); }
+.detail-txns-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .detail-txn { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .detail-txn:last-child { border-bottom: none; }
-.dtxn-left { display: flex; flex-direction: column; gap: 2px; }
-.dtxn-merchant { font-size: 13px; font-weight: 500; }
+.dtxn-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.dtxn-merchant { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dtxn-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
-.dtxn-amt { font-size: 13px; font-weight: 600; color: var(--expense); }
+.dtxn-amt { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; flex-shrink: 0; margin-left: 8px; }
+.dtxn-amt.expense { color: var(--expense); }
+.dtxn-amt.income  { color: var(--income); }
 .dtxn-empty { font-size: 12px; color: var(--muted); text-align: center; padding: 10px 0; }
 
-/* ── SPENDING TAB ── */
-.month-summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.month-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
-.month-row:last-child { border-bottom: none; }
-.month-row:active { background: var(--surface2); }
-.month-row-label { font-size: 14px; font-weight: 600; }
-.month-row-amt { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
-.month-row-amt.neg { color: var(--expense); }
-.month-row-amt.pos { color: var(--income); }
-.chevron { color: var(--muted); font-size: 12px; margin-left: 6px; }
+/* SEARCH BAR */
+.search-wrap { position: relative; }
+.search-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px 10px 36px; outline: none; transition: border-color 0.15s; }
+.search-input:focus { border-color: var(--accent-border); }
+.search-input::placeholder { color: var(--muted); }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
 
-/* ── SPENDING BREAKDOWN ── */
-.breakdown-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
-.breakdown-row:last-child { border-bottom: none; }
-.breakdown-row:active { background: var(--surface2); }
-.breakdown-name { font-size: 13px; font-weight: 600; }
-.breakdown-amt { font-family: 'DM Mono', monospace; font-size: 12px; }
-.breakdown-amt.neg { color: var(--expense); }
-.breakdown-amt.pos { color: var(--income); }
+/* SPENDING TAB */
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-chip { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.filter-chip:active { transform: scale(0.95); }
+.filter-chip.active { background: var(--accent); border-color: var(--accent); color: #051010; font-weight: 600; }
 
-/* ── DATE-GROUPED TRANSACTIONS ── */
+/* DATE GROUP */
 .date-group { display: flex; flex-direction: column; gap: 0; }
 .date-group-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 6px; }
-.date-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); font-weight: 500; }
-.date-total { font-family: 'DM Mono', monospace; font-size: 11px; }
-.date-total.neg { color: var(--expense); }
-.date-total.pos { color: var(--income); }
+.date-group-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); font-weight: 500; }
+.date-group-total { font-family: 'DM Mono', monospace; font-size: 11px; font-variant-numeric: tabular-nums; }
+.date-group-total.neg { color: var(--expense); }
+.date-group-total.pos { color: var(--income); }
 .txn-list { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.txn-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); animation: fadeUp 0.18s cubic-bezier(0.22,1,0.36,1) both; }
+.txn-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-bottom: 1px solid var(--border); animation: fadeUp 0.18s cubic-bezier(0.22,1,0.36,1) both; }
 .txn-row:last-child { border-bottom: none; }
 .txn-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .txn-merchant { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .txn-cat { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.txn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; margin-left: 10px; }
+.txn-amt { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.txn-amt.expense  { color: var(--expense); }
+.txn-amt.income   { color: var(--income); }
+.txn-amt.transfer { color: var(--transfer); }
 .txn-via { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
-.txn-amt { font-size: 13px; font-weight: 600; flex-shrink: 0; margin-left: 10px; }
-.txn-amt.expense { color: var(--expense); }
-.txn-amt.income  { color: var(--income); }
+.txn-empty { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px 20px; text-align: center; font-size: 13px; color: var(--muted); }
 
-/* ── ACCOUNTS ── */
+/* ACCOUNTS TAB */
+.net-worth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px 20px; }
+.nw-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.nw-amount { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--income); letter-spacing: -0.02em; }
+.nw-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; }
 .account-list { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.account-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.account-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
 .account-row:last-child { border-bottom: none; }
 .account-row:active { background: var(--surface2); }
+.account-left { display: flex; flex-direction: column; gap: 2px; }
 .account-name { font-size: 14px; font-weight: 600; }
-.account-bal { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
-.account-bal.pos { color: var(--income); }
-.account-bal.neg { color: var(--expense); }
+.account-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.account-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.account-bal { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.account-bal.pos  { color: var(--income); }
+.account-bal.neg  { color: var(--expense); }
 .account-bal.zero { color: var(--muted); }
-.account-txn-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+.account-chevron { color: var(--muted); font-size: 12px; }
 
-/* ── STATUS ── */
-.status-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-.status-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.status-row:last-child { border-bottom: none; }
-.status-key { font-size: 13px; color: var(--text2); }
-.status-val { font-size: 13px; font-weight: 600; }
-.status-val.pos  { color: var(--income); }
-.status-val.neg  { color: var(--expense); }
-.status-val.warn { color: var(--warn); }
-
-/* ── BACK BUTTON ── */
-.back-bar { display: flex; align-items: center; gap: 8px; padding: 0 0 4px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 600; transition: color 0.15s; }
+.back-bar { display: flex; align-items: center; gap: 8px; color: var(--text2); cursor: pointer; font-size: 13px; font-weight: 600; padding: 0 0 4px; transition: color 0.15s; }
 .back-bar:hover { color: var(--accent); }
-.back-arrow { font-size: 16px; }
+.back-arrow { font-size: 18px; line-height: 1; }
+.acc-filter-bar { display: flex; gap: 6px; }
+.acc-filter { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); cursor: pointer; transition: all 0.15s; }
+.acc-filter.active { background: var(--accent); border-color: var(--accent); color: #051010; font-weight: 600; }
 
-/* ── CHIP ── */
-.chip { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; font-weight: 500; }
-.chip.ok   { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
-.chip.warn { background: var(--warn-dim); color: var(--warn); border: 1px solid var(--warn-border); }
-.chip.over { background: var(--danger-dim); color: var(--expense); border: 1px solid var(--danger-border); }
+/* MORE TAB */
+.more-section { display: flex; flex-direction: column; gap: 3px; }
+.more-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.more-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+.more-row:last-child { border-bottom: none; }
+.more-row-left { display: flex; flex-direction: column; gap: 2px; }
+.more-row-name { font-size: 13px; font-weight: 600; }
+.more-row-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.more-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.more-row-amt { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.more-row-amt.pos  { color: var(--income); }
+.more-row-amt.neg  { color: var(--expense); }
+.more-row-amt.warn { color: var(--warn); }
+.more-row-amt.neutral { color: var(--text2); }
+.goal-bar-track { height: 3px; background: var(--surface3); border-radius: 2px; overflow: hidden; width: 80px; margin-top: 2px; }
+.goal-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+.goal-bar-fill.full { background: var(--income); }
 
-/* ── REFRESH HINT ── */
-.refresh-hint { text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); padding: 8px 0 0; }
+.top5-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--border); }
+.top5-row:last-child { border-bottom: none; }
+.top5-rank { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); width: 16px; flex-shrink: 0; }
+.top5-left { flex: 1; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
+.top5-merchant { font-size: 13px; font-weight: 600; }
+.top5-cat { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.top5-amt { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--expense); }
+
+.merchant-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--border); gap: 10px; }
+.merchant-row:last-child { border-bottom: none; }
+.merchant-name { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.merchant-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.merchant-amt { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--expense); }
+.merchant-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+
+.timestamp { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-align: center; padding: 4px 0 8px; }
+
+/* ── DEBUG PANEL ── */
+.debug-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(11,11,13,0.96);
+  display: flex;
+  flex-direction: column;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+.debug-panel.hidden { display: none; }
+.debug-header {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.debug-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--warn); }
+.debug-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); cursor: pointer; padding: 6px 12px; font-size: 11px; font-family: 'DM Mono', monospace; }
+.debug-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.debug-tab { flex: 1; padding: 10px 4px; text-align: center; cursor: pointer; font-size: 10px; color: var(--muted); border-bottom: 2px solid transparent; letter-spacing: 0.06em; text-transform: uppercase; transition: all 0.15s; }
+.debug-tab.active { color: var(--warn); border-bottom-color: var(--warn); }
+.debug-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.debug-body::-webkit-scrollbar { display: none; }
+.debug-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.debug-section-title { padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); color: var(--text2); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.debug-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--border); }
+.debug-row:last-child { border-bottom: none; }
+.debug-key { color: var(--muted); flex-shrink: 0; font-size: 10px; }
+.debug-val { color: var(--text); text-align: right; word-break: break-all; font-size: 10px; }
+.debug-val.ok   { color: var(--income); }
+.debug-val.warn { color: var(--warn); }
+.debug-val.bad  { color: var(--expense); }
+.debug-raw { padding: 10px 12px; color: var(--text2); font-size: 9px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; }
+.debug-note { padding: 8px 12px; color: var(--warn); font-size: 10px; line-height: 1.5; border-top: 1px solid var(--border); }
+.debug-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 11px; }
+.debug-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.debug-stat { padding: 10px 12px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.debug-stat:nth-child(2n) { border-right: none; }
+.debug-stat:nth-last-child(-n+2) { border-bottom: none; }
+.debug-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.debug-stat-val { font-size: 13px; color: var(--text); font-weight: 500; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
 </style>
 </head>
 <body>
 <div class="app">
+
+  <!-- HEADER -->
   <div class="header">
-    <div class="wordmark">YNA<em>B</em></div>
+    <div class="wordmark">tribe<em>.</em></div>
     <div class="header-right">
-      <div class="month-pill">
+      <div class="month-nav">
         <button class="month-arrow" onclick="changeMonth(-1)">‹</button>
-        <div class="month-text" id="month-text">—</div>
+        <div class="month-label" id="month-label">—</div>
         <button class="month-arrow" onclick="changeMonth(1)">›</button>
       </div>
-      <div class="hbtn" onclick="loadData()" title="Refresh">↺</div>
+      <div class="hbtn" id="debug-btn" onclick="toggleDebug()" title="Debug mode">🔍</div>
+      <div class="hbtn" id="refresh-btn" onclick="loadData()">↺</div>
     </div>
   </div>
 
-  <div class="scroll-area" id="scroll-area">
-    <!-- PLAN PAGE -->
-    <div class="page active" id="page-plan">
-      <div id="plan-content">
-        <div class="state-card">
-          <div class="pulse-ring"><div class="pulse-dot"></div></div>
-          <div class="state-text">Loading…</div>
+  <!-- PAGES -->
+  <div class="pages-wrap" id="pages-wrap">
+    <div class="pages" id="pages">
+      <div class="page" id="page-0">
+        <div class="page-inner" id="plan-content">
+          <div class="state-card">
+            <div class="pulse-ring"><div class="pulse-dot"></div></div>
+            <div class="state-text">Loading your budget…</div>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-1">
+        <div class="page-inner" id="spending-content">
+          <div class="state-card">
+            <div class="pulse-ring"><div class="pulse-dot"></div></div>
+            <div class="state-text">Loading…</div>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-2">
+        <div class="page-inner" id="accounts-content">
+          <div class="state-card">
+            <div class="pulse-ring"><div class="pulse-dot"></div></div>
+            <div class="state-text">Loading…</div>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-3">
+        <div class="page-inner" id="more-content">
+          <div class="state-card">
+            <div class="pulse-ring"><div class="pulse-dot"></div></div>
+            <div class="state-text">Loading…</div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- SPENDING PAGE -->
-    <div class="page" id="page-spending">
-      <div id="spending-content"></div>
+  <!-- BOTTOM NAV -->
+  <div class="tabbar">
+    <div class="tab active" data-tab="0" onclick="switchTab(0)">
+      <div class="tab-icon" style="position:relative">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="tab-badge" id="plan-badge" style="display:none">0</span>
+      </div>
+      <div class="tab-label">Plan</div>
     </div>
-
-    <!-- ACCOUNTS PAGE -->
-    <div class="page" id="page-accounts">
-      <div id="accounts-content"></div>
+    <div class="tab" data-tab="1" onclick="switchTab(1)">
+      <div class="tab-icon">
+        <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      </div>
+      <div class="tab-label">Spending</div>
     </div>
-
-    <!-- STATUS PAGE -->
-    <div class="page" id="page-status">
-      <div id="status-content"></div>
+    <div class="tab" data-tab="2" onclick="switchTab(2)">
+      <div class="tab-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      </div>
+      <div class="tab-label">Accounts</div>
+    </div>
+    <div class="tab" data-tab="3" onclick="switchTab(3)">
+      <div class="tab-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+      <div class="tab-label">More</div>
     </div>
   </div>
 
-  <div class="tabbar">
-    <div class="tab active" data-tab="plan" onclick="switchTab('plan')">
-      <div class="tab-icon">💰</div>
-      <div class="tab-label">Plan</div>
-    </div>
-    <div class="tab" data-tab="spending" onclick="switchTab('spending')">
-      <div class="tab-icon">📋</div>
-      <div class="tab-label">Spending</div>
-    </div>
-    <div class="tab" data-tab="accounts" onclick="switchTab('accounts')">
-      <div class="tab-icon">🏦</div>
-      <div class="tab-label">Accounts</div>
-    </div>
-    <div class="tab" data-tab="status" onclick="switchTab('status')">
-      <div class="tab-icon">📊</div>
-      <div class="tab-label">Status</div>
-    </div>
+</div>
+
+<!-- DEBUG PANEL (overlay) -->
+<div class="debug-panel hidden" id="debug-panel">
+  <div class="debug-header">
+    <div class="debug-title">🔍 Debug Mode</div>
+    <button class="debug-close" onclick="toggleDebug()">✕ Close</button>
+  </div>
+  <div class="debug-tabs">
+    <div class="debug-tab active" onclick="switchDebugTab(0)" id="dtab-0">Overview</div>
+    <div class="debug-tab" onclick="switchDebugTab(1)" id="dtab-1">Budget</div>
+    <div class="debug-tab" onclick="switchDebugTab(2)" id="dtab-2">Activity</div>
+    <div class="debug-tab" onclick="switchDebugTab(3)" id="dtab-3">Snapshot</div>
+  </div>
+  <div class="debug-body" id="debug-body">
+    <div class="debug-empty">Load data first, then open debug mode.</div>
   </div>
 </div>
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbwkz_1GC0BJP7BH42WGAJmKk7Oj0SjxTcux89JH1Khefqdn2HMxemjMNGUr5ysMWEc92A/exec';
-
-const CATEGORY_TO_GROUP = {
-  'Salary':'Income','IOU':'Income',
-  'Electricity':'Home','Groceries':'Home','Lulay':'Home',
-  'Pet Food':'Pets','Grooming':'Pets','Litter':'Pets','Misc':'Pets','Vet':'Pets',
-  'Doctor':'Health','Supplements':'Health','Therapy':'Health','Medicine':'Health','Lab Tests':'Health','Eyes':'Health',
-  'Cellphone':'Quality Of Life','Eating Out':'Quality Of Life','Car':'Quality Of Life','Self Care':'Quality Of Life',
-  'Social':'Quality Of Life','Shopping':'Quality Of Life','Transpo':'Quality Of Life','Others':'Quality Of Life',
-  'Stellar Rebels':'Stellar Rebels',
-  'Digital Subscriptions':'Sinking','Gifts':'Sinking','Car Maintenance':'Sinking','Home Maintenance':'Sinking',
-  'Family Emergency':'Emergency','Medical Emergency':'Emergency','Pet Emergency':'Emergency','Job Loss':'Emergency',
-  'Tech Fund':'Goals','Beauty Fund':'Goals','Vacation Fund':'Goals',
-};
-
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxArmvsbhZIthFv1qqy2cEl5pRRZin2-V-RFdpbuOh--1iESw4m1E8NXo3XtaKqpu-nng/exec';
+const ACCOUNTS = ['BDO','BPI','Cash','GCash','Maribank','Maya','UnionBank','UnionBank Credit'];
+const MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const GROUP_ORDER = ['Income','Home','Pets','Health','Quality Of Life','Stellar Rebels','Sinking','Emergency','Goals'];
-const GROUP_NUMS  = {'Income':'01','Home':'02','Pets':'03','Health':'04','Quality Of Life':'05','Stellar Rebels':'06','Sinking':'07','Emergency':'08','Goals':'09'};
-const INCOME_CATS = ['Salary','IOU'];
-const ACCOUNTS    = ['BDO','BPI','Cash','GCash','Maribank','Maya','UnionBank','UnionBank Credit'];
-const MONTHS      = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── COLUMN MAPS (0-indexed, verified against screenshots) ─────────────────
+// BUDGET:   F=5=MonthStart, G=6=Group, H=7=Category, I=8=Goal, K=10=Assigned,
+//           L=11=Funded, N=13=Activity, O=14=Available, P=15=Overspent
+// ACTIVITY: A=0=Date, B=1=Type, C=2=Amount, D=3=Merchant, E=4=Payment, F=5=Category, G=6=Group
+// SNAPSHOT: A=0=MonthStart, B=1=CashStart, C=2=InflowExternal, D=3=AssignedThisMonth,
+//           E=4=OutflowExternal, F=5=CashEnd, G=6=ReadyToAssignEnd
 
 // ── STATE ─────────────────────────────────────────────────────────────────
-let viewMonth   = new Date(); viewMonth.setDate(1);
-let currentTab  = 'plan';
-let rawYnab     = null;
-let rawTxn      = null;
-let parsedData  = null;
-let openPanel   = null;
-// Spending sub-navigation
-let spendingView = 'months'; // 'months' | 'breakdown' | 'transactions'
-let spendingContext = null;  // { type: 'group'|'account'|'all', label, txns }
+let viewMonth    = new Date(); viewMonth.setDate(1);
+let currentTab   = 0;
+let rawBudget    = null;
+let rawActivity  = null;
+let rawSnapshot  = null;
+let parsedData   = null;
+let lastUpdated  = null;
+let dismissedAlerts = new Set();
+let spendingFilter  = 'All';
+let accountDetailMode = null;
+let debugOpen    = false;
+let debugTabIdx  = 0;
+
+// ── SWIPE ─────────────────────────────────────────────────────────────────
+let touchStartX = 0, touchStartY = 0;
+const pagesWrap = document.getElementById('pages-wrap');
+pagesWrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }, { passive: true });
+pagesWrap.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (dx < 0 && currentTab < 3) switchTab(currentTab + 1);
+    if (dx > 0 && currentTab > 0) switchTab(currentTab - 1);
+  }
+}, { passive: true });
+
+// Pull to refresh
+let pullStartY = 0, pulling = false;
+pagesWrap.addEventListener('touchstart', e => { pullStartY = e.touches[0].clientY; }, { passive: true });
+pagesWrap.addEventListener('touchmove', e => {
+  const page = document.getElementById(`page-${currentTab}`);
+  if (page.scrollTop === 0 && e.touches[0].clientY - pullStartY > 60 && !pulling) {
+    pulling = true; loadData();
+  }
+}, { passive: true });
+pagesWrap.addEventListener('touchend', () => { pulling = false; }, { passive: true });
 
 // ── MONTH ─────────────────────────────────────────────────────────────────
 function updateMonthLabel() {
-  document.getElementById('month-text').textContent = `${MONTHS[viewMonth.getMonth()].slice(0,3)} ${viewMonth.getFullYear()}`;
+  document.getElementById('month-label').textContent =
+    `${MONTHS[viewMonth.getMonth()].slice(0,3).toUpperCase()} ${viewMonth.getFullYear()}`;
 }
 function changeMonth(d) {
-  viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+d, 1);
+  viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + d, 1);
   updateMonthLabel();
-  if (rawYnab && rawTxn) { parsedData = parseAll(rawYnab, rawTxn); renderCurrentTab(); }
+  if (rawBudget) { parsedData = parseAll(); renderCurrentTab(); }
 }
 
 // ── TAB ───────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `page-${tab}`));
-  document.getElementById('scroll-area').scrollTop = 0;
-  renderCurrentTab();
+function switchTab(idx) {
+  currentTab = idx;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', +t.dataset.tab === idx));
+  document.getElementById('pages').style.transform = `translateX(-${idx * 25}%)`;
+  if (parsedData) renderCurrentTab();
 }
-
 function renderCurrentTab() {
-  if (!parsedData) return;
-  if (currentTab === 'plan')     renderPlan();
-  if (currentTab === 'spending') renderSpending();
-  if (currentTab === 'accounts') renderAccounts();
-  if (currentTab === 'status')   renderStatus();
+  accountDetailMode = null;
+  if (currentTab === 0) renderPlan();
+  if (currentTab === 1) renderSpending();
+  if (currentTab === 2) renderAccounts();
+  if (currentTab === 3) renderMore();
 }
 
 // ── FETCH ─────────────────────────────────────────────────────────────────
 async function loadData() {
-  showLoading();
+  const btn = document.getElementById('refresh-btn');
+  btn.style.opacity = '0.4';
+  btn.style.pointerEvents = 'none';
   try {
     const res  = await fetch(WEBHOOK);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json.ynab || !json.txn) throw new Error('doGet not returning ynab/txn. Redeploy your Apps Script.');
-    rawYnab    = json.ynab;
-    rawTxn     = json.txn;
-    parsedData = parseAll(rawYnab, rawTxn);
+    if (json.status === 'error') throw new Error(json.message);
+    if (!json.budget || !json.activity || !json.snapshot) throw new Error('Missing data from webhook. Redeploy Apps Script.');
+    rawBudget   = json.budget;
+    rawActivity = json.activity;
+    rawSnapshot = json.snapshot;
+    lastUpdated = new Date();
+    parsedData  = parseAll();
     renderCurrentTab();
-  } catch(e) { showError(e.message); }
+    if (debugOpen) renderDebug();
+    try {
+      localStorage.setItem('tribe_cache', JSON.stringify({ budget: rawBudget, activity: rawActivity, snapshot: rawSnapshot, ts: lastUpdated.toISOString() }));
+    } catch(e) {}
+  } catch(err) {
+    showError(err.message);
+  } finally {
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+  }
 }
 
-function showLoading() {
-  ['plan','spending','accounts','status'].forEach(t => {
-    document.getElementById(`${t}-content`).innerHTML = `
-      <div class="state-card">
-        <div class="pulse-ring"><div class="pulse-dot"></div></div>
-        <div class="state-text">Loading…</div>
-      </div>`;
-  });
+function loadFromCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem('tribe_cache') || 'null');
+    if (!cached) return false;
+    rawBudget   = cached.budget;
+    rawActivity = cached.activity;
+    rawSnapshot = cached.snapshot;
+    lastUpdated = new Date(cached.ts);
+    parsedData  = parseAll();
+    renderCurrentTab();
+    return true;
+  } catch { return false; }
 }
 
 function showError(msg) {
-  document.getElementById('plan-content').innerHTML = `
-    <div class="state-card">
-      <div class="error-title">Couldn't load data</div>
-      <div class="state-text">${msg}</div>
-      <button class="btn-retry" onclick="loadData()">Retry</button>
-    </div>`;
+  const html = `<div class="state-card">
+    <div class="error-title">Couldn't load data</div>
+    <div class="state-text">${msg}</div>
+    <button class="btn-retry" onclick="loadData()">Retry</button>
+  </div>`;
+  document.getElementById('plan-content').innerHTML = html;
 }
 
 // ── PARSE ─────────────────────────────────────────────────────────────────
-function parseAll(ynabRaw, txnRaw) {
+// Detect if first row is a header by checking if col 5 (MonthStart) is a date
+function hasHeader(rows) {
+  if (!rows || !rows.length) return false;
+  const firstRowCol5 = String(rows[0][5] || '');
+  // If it's a date pattern or parseable date → no header
+  // If it's a string like 'MonthStart' → has header
+  const d = parseDate(firstRowCol5);
+  return d === null;
+}
+
+function parseAll() {
   const m = viewMonth.getMonth();
   const y = viewMonth.getFullYear();
 
-  // ── Budget from YNAB tab ──
-  // Structure: each row = one category for one month
-  // Col A=BudgetRowID, B=GroupKey, C=GroupID, D=CategoryID, E=GroupSort
-  // Col F=MonthStart (text: "January"), G=Date (1/1/2026), H=Group, I=Category
-  // Col J=Goal, K=Funded, L=Expenses, M=Rollover, N=Available, O=Needed
+  // Auto-detect header row
+  const budgetHasHeader   = hasHeader(rawBudget);
+  const activityHasHeader = hasHeader(rawActivity);
 
-  const budgetMap   = {}; // cat → funded
-  const rolloverMap = {}; // cat → rollover
-  const availableMap= {}; // cat → available
-  const expensesMap = {}; // cat → expenses (from YNAB, not transactions)
-  const neededMap   = {}; // cat → needed
+  const budgetData   = budgetHasHeader   ? rawBudget.slice(1)   : rawBudget;
+  const activityData = activityHasHeader ? rawActivity.slice(1) : rawActivity;
 
-  for (let r = 1; r < ynabRaw.length; r++) {
-    const row      = ynabRaw[r] || [];
-    if (!row.length) continue;
+  // ── Budget rows for this month ──
+  const budgetRows = budgetData.filter(row => {
+    const d = parseDate(row[5]);
+    return d && d.getMonth() === m && d.getFullYear() === y;
+  });
 
-    const monthName = String(row[5]||'').trim(); // col F = MonthStart
-    const cat       = String(row[8]||'').trim(); // col I = Category
-    const group     = String(row[7]||'').trim(); // col H = Group
-
-    if (!cat || !monthName) continue;
-
-    // Match month: check col F (text) against current month name
-    // Also support col G (date like "1/1/2026" or "2/1/2026")
-    const rowDate   = parseTxnDate(String(row[6]||'').trim()); // col G = Date
-    const matchByDate = rowDate && rowDate.getMonth()===m && rowDate.getFullYear()===y;
-    const matchByName = monthName === MONTHS[m];
-
-    if (!matchByDate && !matchByName) continue;
-
-    budgetMap[cat]    = parseNum(row[10]); // col K = Funded
-    expensesMap[cat]  = parseNum(row[11]); // col L = Expenses
-    rolloverMap[cat]  = parseNum(row[12]); // col M = Rollover
-    availableMap[cat] = parseNum(row[13]); // col N = Available
-    neededMap[cat]    = parseNum(row[14]); // col O = Needed
+  // Build category map
+  const catMap = {};
+  for (const row of budgetRows) {
+    const group     = String(row[6]  || '').trim();
+    const cat       = String(row[7]  || '').trim();
+    if (!cat || !group) continue;
+    const goal      = parseNum(row[8]);
+    const funded    = parseNum(row[11]);
+    const activity  = parseNum(row[13]); // negative = expenses
+    const available = parseNum(row[14]);
+    const overspent = parseNum(row[15]);
+    catMap[cat] = { group, funded, activity, available, overspent, goal };
   }
 
-  // ── Transactions ──
-  const allTxns = [];
-  for (let r = 1; r < txnRaw.length; r++) {
-    const row = txnRaw[r] || [];
-    if (!row.length) continue;
-    const type     = String(row[1]||'').trim();
-    const amount   = parseNum(String(row[2]||'0').replace(/,/g,''));
-    const dateStr  = String(row[3]||row[0]||'').trim();
-    const merchant = String(row[4]||'').trim();
-    const payment  = String(row[5]||'').trim();
-    const category = String(row[6]||'').trim();
-    const group    = String(row[7]||'').trim() || CATEGORY_TO_GROUP[category] || '';
-    const date     = parseTxnDate(dateStr);
-    if (!date) continue;
-    allTxns.push({ type, amount, date, merchant, payment, category, group });
-  }
-
-  // Filter to this month
-  const monthTxns = allTxns.filter(t => t.date.getMonth()===m && t.date.getFullYear()===y && t.type !== 'Balance' && t.type !== 'Transfer');
-
-  // Aggregate
-  const spentMap  = {};
-  const incomeTxns= [];
-  let totalIncome = 0;
-  let totalSpent  = 0;
-
-  for (const t of monthTxns) {
-    if (t.type === 'Income' || t.amount > 0) {
-      totalIncome += Math.abs(t.amount);
-      incomeTxns.push(t);
-    } else {
-      const spent = Math.abs(t.amount);
-      totalSpent += spent;
-      if (t.category) spentMap[t.category] = (spentMap[t.category]||0) + spent;
+  // ── Snapshot for this month ──
+  let readyToAssign = 0;
+  let cashStart = 0, inflowExternal = 0, outflowExternal = 0, cashEnd = 0;
+  // Snapshot has a header row — detect it
+  const snapHasHeader = rawSnapshot.length > 0 && parseDate(rawSnapshot[0][0]) === null;
+  const snapData = snapHasHeader ? rawSnapshot.slice(1) : rawSnapshot;
+  for (const row of snapData) {
+    const d = parseDate(row[0]);
+    if (d && d.getMonth() === m && d.getFullYear() === y) {
+      cashStart       = parseNum(row[1]);
+      inflowExternal  = parseNum(row[2]);
+      outflowExternal = parseNum(row[4]);
+      cashEnd         = parseNum(row[5]);
+      readyToAssign   = parseNum(row[6]);
+      break;
     }
   }
 
-  // Build category objects — use YNAB sheet as source of truth for budget numbers
-  const allCats = new Set([...Object.keys(budgetMap), ...Object.keys(availableMap)]);
+  // ── Activity rows ──
+  const monthActivity = activityData.filter(row => {
+    const d = parseDate(row[0]);
+    return d && d.getMonth() === m && d.getFullYear() === y;
+  });
+
+  const expenseTxns  = monthActivity.filter(r => String(r[1]).trim() === 'Expense');
+  const incomeTxns   = monthActivity.filter(r => String(r[1]).trim() === 'Income');
+  const transferTxns = monthActivity.filter(r => String(r[1]).trim() === 'Transfer');
+  // Balance rows: ALL time (not month-filtered) for running balance
+  const balanceTxns  = activityData.filter(r => String(r[1]).trim() === 'Balance');
+
+  const totalIncome  = incomeTxns.reduce((s, r) => s + Math.abs(parseNum(r[2])), 0);
+  const totalExpense = expenseTxns.reduce((s, r) => s + Math.abs(parseNum(r[2])), 0);
+
+  // Transactions per category
+  const txnsByCat = {};
+  for (const row of expenseTxns) {
+    const cat = String(row[5] || '').trim();
+    if (!cat) continue;
+    if (!txnsByCat[cat]) txnsByCat[cat] = [];
+    txnsByCat[cat].push({
+      date:    parseDate(row[0]),
+      type:    'expense',
+      amount:  parseNum(row[2]),
+      merchant:String(row[3] || '').trim(),
+      payment: String(row[4] || '').trim(),
+      cat, group: String(row[6] || '').trim(),
+    });
+  }
+
+  // Build categories array
   const categories = [];
-  for (const cat of allCats) {
-    if (INCOME_CATS.includes(cat)) continue;
-    const group     = CATEGORY_TO_GROUP[cat] || 'Other';
-    const funded    = budgetMap[cat]    || 0;
-    const rollover  = rolloverMap[cat]  || 0;
-    const expenses  = Math.abs(expensesMap[cat]  || spentMap[cat] || 0);
-    const available = availableMap.hasOwnProperty(cat) ? availableMap[cat] : (funded + rollover - expenses);
-    const base      = funded + rollover;
-    const pct       = base > 0 ? Math.min((expenses/base)*100,100) : (expenses>0?100:0);
-    const txns      = monthTxns.filter(t=>t.category===cat && t.type!=='Income');
-    categories.push({ cat, group, funded, rollover, expenses, available, pct, txns });
+  for (const [cat, data] of Object.entries(catMap)) {
+    const expenses = Math.abs(data.activity);
+    const base     = data.funded;
+    const pct      = base > 0 ? Math.min((expenses / base) * 100, 100) : (expenses > 0 ? 100 : 0);
+    const status   = data.available < 0 ? 'over' : pct >= 80 ? 'warn' : data.available === 0 && base === 0 ? 'zero' : 'ok';
+    const txns     = (txnsByCat[cat] || []).sort((a, b) => b.date - a.date);
+    categories.push({ cat, ...data, expenses, pct, status, txns });
   }
 
-  // Account balances (from Balance-type entries for all time, latest per account)
-  const accountTxns = {};
+  // Account running balances — latest Balance row per account across ALL time
+  const accountBalances = {};
   for (const acc of ACCOUNTS) {
-    accountTxns[acc] = allTxns.filter(t => t.payment === acc && t.type !== 'Balance' && t.date.getMonth()===m && t.date.getFullYear()===y);
+    const rows = balanceTxns
+      .filter(r => String(r[4] || '').trim() === acc)
+      .sort((a, b) => {
+        const da = parseDate(a[0]) || new Date(0);
+        const db = parseDate(b[0]) || new Date(0);
+        return db - da;
+      });
+    accountBalances[acc] = rows.length ? parseNum(rows[0][2]) : 0;
   }
 
-  // Spending by group this month
-  const groupSpending = {};
-  for (const t of monthTxns) {
-    if (t.type !== 'Income' && t.group) {
-      groupSpending[t.group] = (groupSpending[t.group]||0) + Math.abs(t.amount);
-    }
+  const netWorth = Object.values(accountBalances).reduce((s, v) => s + v, 0);
+
+  // Account transactions this month
+  const txnsByAccount = {};
+  for (const acc of ACCOUNTS) {
+    txnsByAccount[acc] = monthActivity
+      .filter(r => String(r[4] || '').trim() === acc && String(r[1]).trim() !== 'Balance')
+      .map(r => ({
+        date:    parseDate(r[0]),
+        type:    String(r[1]).trim().toLowerCase(),
+        amount:  parseNum(r[2]),
+        merchant:String(r[3] || '').trim(),
+        cat:     String(r[5] || '').trim(),
+        group:   String(r[6] || '').trim(),
+        payment: acc,
+      }))
+      .sort((a, b) => b.date - a.date);
   }
 
-  // Total budgeted
-  const totalBudgeted = Object.values(budgetMap).reduce((a,b)=>a+b,0);
+  // All month txns for spending tab
+  const allMonthTxns = monthActivity
+    .filter(r => String(r[1]).trim() !== 'Balance')
+    .map(r => ({
+      date:    parseDate(r[0]),
+      type:    String(r[1]).trim().toLowerCase(),
+      amount:  parseNum(r[2]),
+      merchant:String(r[3] || '').trim(),
+      payment: String(r[4] || '').trim(),
+      cat:     String(r[5] || '').trim(),
+      group:   String(r[6] || '').trim(),
+    }))
+    .sort((a, b) => b.date - a.date);
 
-  return { categories, monthTxns, incomeTxns, totalIncome, totalSpent, totalBudgeted, groupSpending, accountTxns, spentMap };
+  const overspentCats = categories.filter(c => c.available < 0);
+
+  const top5 = [...expenseTxns]
+    .sort((a, b) => Math.abs(parseNum(a[2])) - Math.abs(parseNum(b[2])))
+    .slice(-5).reverse()
+    .map(r => ({ merchant: String(r[3]||'').trim(), cat: String(r[5]||'').trim(), amount: Math.abs(parseNum(r[2])) }));
+
+  const merchantMap = {};
+  for (const r of expenseTxns) {
+    const mn = String(r[3]||'').trim() || '—';
+    if (!merchantMap[mn]) merchantMap[mn] = { total: 0, count: 0 };
+    merchantMap[mn].total += Math.abs(parseNum(r[2]));
+    merchantMap[mn].count++;
+  }
+  const merchantSpend = Object.entries(merchantMap)
+    .sort((a,b) => b[1].total - a[1].total)
+    .slice(0, 10)
+    .map(([name, d]) => ({ name, ...d }));
+
+  // Debug metadata
+  const _debug = {
+    budgetHasHeader, activityHasHeader, snapHasHeader,
+    rawBudgetRows: rawBudget.length,
+    rawActivityRows: rawActivity.length,
+    rawSnapshotRows: rawSnapshot.length,
+    budgetRowsThisMonth: budgetRows.length,
+    activityRowsThisMonth: monthActivity.length,
+    categoriesFound: categories.length,
+    expenseTxnCount: expenseTxns.length,
+    incomeTxnCount: incomeTxns.length,
+    balanceTxnCount: balanceTxns.length,
+    // sample rows for verification
+    budgetSampleRow: budgetRows[0] ? budgetRows[0] : null,
+    activitySampleRow: expenseTxns[0] ? expenseTxns[0] : null,
+    snapshotSampleRow: snapData[0] ? snapData[0] : null,
+  };
+
+  return {
+    categories, readyToAssign, totalIncome, totalExpense,
+    cashStart, inflowExternal, outflowExternal, cashEnd,
+    accountBalances, netWorth, txnsByAccount, allMonthTxns,
+    overspentCats, top5, merchantSpend, _debug,
+  };
+}
+
+// ── DEBUG ─────────────────────────────────────────────────────────────────
+function toggleDebug() {
+  debugOpen = !debugOpen;
+  document.getElementById('debug-panel').classList.toggle('hidden', !debugOpen);
+  document.getElementById('debug-btn').classList.toggle('debug-active', debugOpen);
+  if (debugOpen && parsedData) renderDebug();
+}
+
+function switchDebugTab(idx) {
+  debugTabIdx = idx;
+  document.querySelectorAll('.debug-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  if (parsedData) renderDebug();
+}
+
+function renderDebug() {
+  const el = document.getElementById('debug-body');
+  if (!rawBudget) { el.innerHTML = '<div class="debug-empty">No data loaded yet. Pull to refresh or tap ↺</div>'; return; }
+  const d = parsedData._debug;
+  const p = parsedData;
+
+  if (debugTabIdx === 0) {
+    // Overview — parser health check
+    const checks = [
+      { label: 'Budget header detected', val: d.budgetHasHeader, expect: true },
+      { label: 'Activity header detected', val: d.activityHasHeader, expect: true },
+      { label: 'Snapshot header detected', val: d.snapHasHeader, expect: true },
+      { label: 'Budget rows (raw)', val: d.rawBudgetRows, note: 'including header if any' },
+      { label: 'Activity rows (raw)', val: d.rawActivityRows, note: '' },
+      { label: `Budget rows for ${MONTHS[viewMonth.getMonth()]}`, val: d.budgetRowsThisMonth, warn: d.budgetRowsThisMonth === 0 },
+      { label: `Activity rows for ${MONTHS[viewMonth.getMonth()]}`, val: d.activityRowsThisMonth, warn: d.activityRowsThisMonth === 0 },
+      { label: 'Categories parsed', val: d.categoriesFound, warn: d.categoriesFound === 0 },
+      { label: 'Expense txns', val: d.expenseTxnCount },
+      { label: 'Income txns', val: d.incomeTxnCount },
+      { label: 'Balance rows (all time)', val: d.balanceTxnCount, warn: d.balanceTxnCount === 0 },
+    ];
+
+    const heroChecks = [
+      { label: 'Left to Assign', val: fmtFull(p.readyToAssign), src: 'Snapshot col G ✓' },
+      { label: 'Total Income', val: fmtFull(p.totalIncome), src: 'Activity Income rows' },
+      { label: 'Total Expense', val: fmtFull(p.totalExpense), src: 'Activity Expense rows' },
+      { label: 'Net Worth', val: fmtFull(p.netWorth), src: 'Latest Balance per account' },
+    ];
+
+    el.innerHTML = `
+      <div class="debug-section">
+        <div class="debug-section-title">Parser Health</div>
+        ${checks.map(c => `
+          <div class="debug-row">
+            <span class="debug-key">${c.label}</span>
+            <span class="debug-val ${c.warn ? 'bad' : c.val === true ? 'ok' : c.val === false ? 'warn' : ''}">${
+              c.val === true ? '✓ yes' : c.val === false ? '✗ no' : String(c.val)
+            }${c.note ? ` <span style="color:var(--muted)">(${c.note})</span>` : ''}</span>
+          </div>`).join('')}
+      </div>
+      <div class="debug-section">
+        <div class="debug-section-title">Key Values — verify against sheet</div>
+        <div class="debug-stat-grid">
+          ${heroChecks.map(c => `
+            <div class="debug-stat">
+              <div class="debug-stat-label">${c.label}</div>
+              <div class="debug-stat-val">${c.val}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px">${c.src}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="debug-section">
+        <div class="debug-section-title">Account Balances</div>
+        ${ACCOUNTS.map(acc => {
+          const bal = p.accountBalances[acc];
+          return `<div class="debug-row">
+            <span class="debug-key">${acc}</span>
+            <span class="debug-val ${bal > 0 ? 'ok' : bal < 0 ? 'bad' : ''}">${fmtFull(bal)}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+  } else if (debugTabIdx === 1) {
+    // Budget raw sample
+    const budgetData = (d.budgetHasHeader ? rawBudget.slice(1) : rawBudget)
+      .filter(row => {
+        const dt = parseDate(row[5]);
+        return dt && dt.getMonth() === viewMonth.getMonth() && dt.getFullYear() === viewMonth.getFullYear();
+      }).slice(0, 5);
+
+    el.innerHTML = `
+      <div class="debug-section">
+        <div class="debug-section-title">Budget — Column Map (verified)</div>
+        ${[
+          ['Col 5 (F)', 'MonthStart'],['Col 6 (G)', 'Group'],['Col 7 (H)', 'Category'],
+          ['Col 8 (I)', 'Monthly Goal'],['Col 10 (K)', 'Assigned'],['Col 11 (L)', 'Funded'],
+          ['Col 13 (N)', 'Activity'],['Col 14 (O)', 'Available ← truth'],['Col 15 (P)', 'Overspent'],
+        ].map(([col, name]) => `<div class="debug-row"><span class="debug-key">${col}</span><span class="debug-val">${name}</span></div>`).join('')}
+      </div>
+      <div class="debug-section">
+        <div class="debug-section-title">First 5 Budget Rows This Month</div>
+        ${budgetData.length === 0 ? '<div class="debug-empty">No rows found — check MonthStart parsing</div>' :
+          budgetData.map((row, i) => `
+            <div class="debug-row" style="flex-direction:column;gap:4px;align-items:flex-start">
+              <span class="debug-key">Row ${i+1}: ${String(row[7]||'?').trim()} (${String(row[6]||'?').trim()})</span>
+              <span class="debug-val" style="font-size:9px;text-align:left">
+                MonthStart: ${String(row[5]||'—')} → ${parseDate(row[5]) ? parseDate(row[5]).toLocaleDateString() : '❌ parse fail'}<br>
+                Goal: ${String(row[8]||0)} | Funded: ${String(row[11]||0)} | Activity: ${String(row[13]||0)}<br>
+                Available: ${String(row[14]||0)} | Overspent: ${String(row[15]||0)}
+              </span>
+            </div>`).join('')}
+        ${budgetData.length > 0 ? '<div class="debug-note">⚠ Compare these values to your Google Sheet to verify column alignment</div>' : ''}
+      </div>`;
+
+  } else if (debugTabIdx === 2) {
+    // Activity raw sample
+    const actData = (d.activityHasHeader ? rawActivity.slice(1) : rawActivity)
+      .filter(row => {
+        const dt = parseDate(row[0]);
+        return dt && dt.getMonth() === viewMonth.getMonth() && dt.getFullYear() === viewMonth.getFullYear();
+      }).slice(0, 6);
+
+    el.innerHTML = `
+      <div class="debug-section">
+        <div class="debug-section-title">Activity — Column Map (verified)</div>
+        ${[
+          ['Col 0 (A)', 'Date'],['Col 1 (B)', 'Type'],['Col 2 (C)', 'Amount (neg=expense)'],
+          ['Col 3 (D)', 'Merchant'],['Col 4 (E)', 'Payment Method'],
+          ['Col 5 (F)', 'Category'],['Col 6 (G)', 'Group'],
+        ].map(([col, name]) => `<div class="debug-row"><span class="debug-key">${col}</span><span class="debug-val">${name}</span></div>`).join('')}
+      </div>
+      <div class="debug-section">
+        <div class="debug-section-title">First 6 Activity Rows This Month</div>
+        ${actData.length === 0 ? '<div class="debug-empty">No rows found</div>' :
+          actData.map((row, i) => `
+            <div class="debug-row" style="flex-direction:column;gap:4px;align-items:flex-start">
+              <span class="debug-key">Row ${i+1}: ${String(row[1]||'?').trim()} — ${String(row[3]||'?').trim()}</span>
+              <span class="debug-val" style="font-size:9px;text-align:left">
+                Date: ${String(row[0]||'—')} → ${parseDate(row[0]) ? parseDate(row[0]).toLocaleDateString() : '❌ parse fail'}<br>
+                Amount: ${String(row[2]||0)} | Payment: ${String(row[4]||'—')}<br>
+                Category: ${String(row[5]||'—')} | Group: ${String(row[6]||'—')}
+              </span>
+            </div>`).join('')}
+        ${actData.length > 0 ? '<div class="debug-note">⚠ Compare Date parse, Amount sign, Category & Group to your sheet</div>' : ''}
+      </div>`;
+
+  } else if (debugTabIdx === 3) {
+    // Snapshot raw
+    const snapHasHeader = d.snapHasHeader;
+    const snapData = snapHasHeader ? rawSnapshot.slice(1) : rawSnapshot;
+
+    el.innerHTML = `
+      <div class="debug-section">
+        <div class="debug-section-title">Snapshot — Column Map (verified)</div>
+        ${[
+          ['Col 0 (A)', 'MonthStart'],['Col 1 (B)', 'CashStart'],['Col 2 (C)', 'InflowExternal'],
+          ['Col 3 (D)', 'AssignedThisMonth'],['Col 4 (E)', 'OutflowExternal'],
+          ['Col 5 (F)', 'CashEnd'],['Col 6 (G)', 'ReadyToAssignEnd ← hero'],
+        ].map(([col, name]) => `<div class="debug-row"><span class="debug-key">${col}</span><span class="debug-val">${name}</span></div>`).join('')}
+      </div>
+      <div class="debug-section">
+        <div class="debug-section-title">All Snapshot Rows</div>
+        ${snapData.length === 0 ? '<div class="debug-empty">No rows</div>' :
+          snapData.map((row, i) => {
+            const dt = parseDate(row[0]);
+            const isCurrentMonth = dt && dt.getMonth() === viewMonth.getMonth() && dt.getFullYear() === viewMonth.getFullYear();
+            return `<div class="debug-row" style="flex-direction:column;gap:4px;align-items:flex-start;${isCurrentMonth ? 'background:var(--accent-dim);' : ''}">
+              <span class="debug-key">${String(row[0]||'?')} ${isCurrentMonth ? '← current month' : ''}</span>
+              <span class="debug-val" style="font-size:9px;text-align:left">
+                Parsed: ${dt ? dt.toLocaleDateString() : '❌'} |
+                ReadyToAssign (G): <strong style="color:var(--warn)">${String(row[6]||'—')}</strong>
+              </span>
+            </div>`;
+          }).join('')}
+        <div class="debug-note">⚠ ReadyToAssign shown in the Plan hero — must match col G in your sheet exactly</div>
+      </div>`;
+  }
 }
 
 // ── PLAN TAB ──────────────────────────────────────────────────────────────
 function renderPlan() {
   const d   = parsedData;
   const el  = document.getElementById('plan-content');
-  const remaining   = d.totalBudgeted - d.totalSpent;
-  const masterPct   = d.totalBudgeted > 0 ? Math.min((d.totalSpent/d.totalBudgeted)*100,100) : 0;
-  const barClass    = masterPct>=100?'over':masterPct>=80?'warn':'ok';
-  const remClass    = remaining<0?'neg':'pos';
-  const statusChip  = remaining<0?'<span class="chip over">Overspent</span>':masterPct>=80?'<span class="chip warn">Watch it</span>':'<span class="chip ok">On track</span>';
+  const lta = d.readyToAssign;
+  const heroState = lta < 0 ? 'neg' : lta < (d.totalIncome * 0.2) ? 'warn' : 'pos';
 
-  // Group categories
-  const byGroup = {};
-  for (const item of d.categories) {
-    if (!byGroup[item.group]) byGroup[item.group] = [];
-    byGroup[item.group].push(item);
+  const badge = document.getElementById('plan-badge');
+  if (d.overspentCats.length > 0) {
+    badge.style.display = '';
+    badge.textContent   = d.overspentCats.length;
+  } else {
+    badge.style.display = 'none';
   }
 
-  const groups = [...GROUP_ORDER.filter(g=>byGroup[g]), ...Object.keys(byGroup).filter(g=>!GROUP_ORDER.includes(g))];
+  const byGroup = {};
+  for (const item of d.categories) {
+    const g = item.group || 'Other';
+    if (!byGroup[g]) byGroup[g] = [];
+    byGroup[g].push(item);
+  }
+  for (const g of Object.keys(byGroup)) {
+    byGroup[g].sort((a, b) => {
+      if (a.status === 'over' && b.status !== 'over') return -1;
+      if (b.status === 'over' && a.status !== 'over') return 1;
+      return a.available - b.available;
+    });
+  }
 
-  let html = `
-    <div class="hero">
-      <div class="hero-label">Available This Month</div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div class="hero-amount ${remClass}">${remaining<0?'−':''}${fmtShort(Math.abs(remaining))}</div>
-        ${statusChip}
+  const orderedGroups = [
+    ...GROUP_ORDER.filter(g => byGroup[g]),
+    ...Object.keys(byGroup).filter(g => !GROUP_ORDER.includes(g))
+  ];
+
+  let html = '';
+
+  // Overspent alerts
+  for (const cat of d.overspentCats) {
+    if (dismissedAlerts.has(cat.cat)) continue;
+    html += `<div class="alert-banner expense" id="alert-${cat.cat.replace(/\s/g,'-')}">
+      <div class="alert-text">
+        <strong>${cat.cat} overspent</strong>
+        <span>${fmtFull(Math.abs(cat.available))} over budget</span>
       </div>
-      <div class="hero-stats">
-        <div class="hstat"><div class="hstat-label">Budgeted</div><div class="hstat-val neutral-c">${fmtShort(d.totalBudgeted)}</div></div>
-        <div class="hstat"><div class="hstat-label">Spent</div><div class="hstat-val expense-c">${fmtShort(d.totalSpent)}</div></div>
-        <div class="hstat"><div class="hstat-label">Income</div><div class="hstat-val income-c">${fmtShort(d.totalIncome)}</div></div>
-      </div>
-      <div class="hero-bar-wrap">
-        <div class="bar-row"><span class="bar-pct">${Math.round(masterPct)}% used</span><span class="bar-pct">${fmtShort(d.totalSpent)} / ${fmtShort(d.totalBudgeted)}</span></div>
-        <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${masterPct}%"></div></div>
-      </div>
+      <button class="alert-dismiss" onclick="dismissAlert('${cat.cat}')">×</button>
     </div>`;
+  }
 
+  // Hero
+  html += `<div class="hero-card">
+    <div class="hero-glow ${heroState}"></div>
+    <div class="hero-top">
+      <div class="hero-meta-label">Left to Assign</div>
+      <div class="hero-amount-row">
+        <div class="hero-amount ${heroState}">${lta < 0 ? '−' : ''}${fmtFull(Math.abs(lta))}</div>
+        <div class="status-chip ${heroState}">${lta < 0 ? 'Over-assigned' : lta < (d.totalIncome * 0.2) ? 'Low' : 'On track'}</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-label">Income</div>
+        <div class="hstat-val income-c">${fmtShort(d.totalIncome)}</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-label">Spent</div>
+        <div class="hstat-val expense-c">${fmtShort(d.totalExpense)}</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-label">Assigned</div>
+        <div class="hstat-val neutral-c">${fmtShort(d.totalIncome - lta)}</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Search
+  html += `<div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" id="cat-search" placeholder="Search categories…" oninput="filterCategories(this.value)">
+  </div>`;
+
+  // Groups
   let delay = 0;
-  for (const group of groups) {
-    const items = byGroup[group];
+  for (const group of orderedGroups) {
+    const items   = byGroup[group];
     if (!items?.length) continue;
-    const gSpent    = items.reduce((s,i)=>s+i.expenses,0);
-    const gFunded   = items.reduce((s,i)=>s+i.funded+i.rollover,0);
-    const gAvail    = items.reduce((s,i)=>s+i.available,0);
-    const gBadge    = gAvail<0?'neg':gAvail>0?'pos':'neutral';
-    const num       = GROUP_NUMS[group]||'';
+    const gAvail  = items.reduce((s, i) => s + i.available, 0);
+    const gClass  = gAvail < 0 ? 'neg' : gAvail > 0 ? 'pos' : 'zero';
+    const groupId = `group-${group.replace(/\s+/g, '-')}`;
 
-    html += `<div class="group-block">
-      <div class="group-header-row">
-        <div class="group-title">${num?`${num} — `:''}${group}</div>
-        <div class="group-badge ${gBadge}">${gAvail<0?'−':''}${fmtShort(Math.abs(gAvail))}</div>
-      </div>`;
+    html += `<div class="group-block" id="block-${groupId}">
+      <div class="group-header" onclick="toggleGroup('${groupId}')">
+        <div class="group-title">
+          <span class="group-toggle" id="toggle-${groupId}">▾</span>
+          ${group}
+        </div>
+        <div class="group-available ${gClass}">${gAvail < 0 ? '−' : ''}${fmtShort(Math.abs(gAvail))}</div>
+      </div>
+      <div class="group-cats" id="cats-${groupId}">`;
 
-    for (const item of items.sort((a,b)=>Math.abs(b.available)-Math.abs(a.available))) {
-      const status   = item.available<0?'over':item.pct>=80?'warn':'ok';
-      const remClass2= item.available<0?'neg':item.available===0?'zero':'pos';
-      const barC     = item.available<0?'over':item.pct>=80?'warn':'ok';
-      const id       = `panel-${item.cat.replace(/\s+/g,'-')}`;
-
-      html += `<div class="cat-card ${status}" style="animation-delay:${delay}ms" onclick="togglePanel('${id}')">
+    for (const item of items) {
+      const barClass = item.status === 'over' ? 'over' : item.status === 'warn' ? 'warn' : 'ok';
+      const panelId  = `panel-${item.cat.replace(/\s+/g, '-')}`;
+      html += `<div class="cat-card ${item.status}" style="animation-delay:${delay}ms" onclick="togglePanel('${panelId}')">
         <div class="cat-main">
           <div class="cat-left">
             <div class="cat-name">${item.cat}</div>
-            <div class="cat-sub">${item.funded>0?`${fmtShort(item.funded)} funded`:'no budget'}${item.rollover?` · +${fmtShort(item.rollover)} rollover`:''}</div>
+            <div class="cat-sub">${item.funded > 0 ? `${fmtShort(item.funded)} funded` : 'no budget'}${item.txns.length ? ` · ${item.txns.length} txn${item.txns.length !== 1 ? 's' : ''}` : ''}</div>
           </div>
           <div class="cat-right">
-            <div class="cat-available ${remClass2}">${item.available<0?'−':''}${fmtShort(Math.abs(item.available))}</div>
-            <div class="cat-spent-label">${item.expenses>0?`${fmtShort(item.expenses)} spent`:item.txns.length?`${item.txns.length} txn`:'no activity'}</div>
+            <div class="cat-available ${item.available < 0 ? 'neg' : item.available === 0 ? 'zero' : 'pos'}">${item.available < 0 ? '−' : ''}${fmtFull(Math.abs(item.available))}</div>
+            ${item.expenses > 0 ? `<div class="cat-spent-sub">${fmtShort(item.expenses)} spent</div>` : ''}
           </div>
         </div>
-        ${item.funded>0||item.rollover>0?`<div class="cat-progress"><div class="cat-progress-fill bar-fill ${barC}" style="width:${item.pct}%"></div></div>`:''}
-        <div class="detail-panel" id="${id}">
+        ${item.funded > 0 ? `<div class="cat-bar-track"><div class="cat-bar-fill ${barClass}" style="width:${item.pct}%"></div></div>` : ''}
+        <div class="detail-panel" id="${panelId}">
           <div class="detail-inner">
             <div class="detail-grid">
-              <div class="detail-stat"><div class="detail-stat-label">Funded</div><div class="detail-stat-val income-c">${fmtFull(item.funded)}</div></div>
-              <div class="detail-stat"><div class="detail-stat-label">Expenses</div><div class="detail-stat-val expense-c">${item.expenses>0?'−':''}${fmtFull(item.expenses)}</div></div>
-              <div class="detail-stat"><div class="detail-stat-label">Rollover</div><div class="detail-stat-val neutral-c">${fmtFull(item.rollover)}</div></div>
-              <div class="detail-stat"><div class="detail-stat-label">Available</div><div class="detail-stat-val ${item.available<0?'expense-c':item.available===0?'neutral-c':'income-c'}">${item.available<0?'−':''}${fmtFull(Math.abs(item.available))}</div></div>
+              <div class="dstat"><div class="dstat-label">Funded</div><div class="dstat-val pos">${fmtFull(item.funded)}</div></div>
+              <div class="dstat"><div class="dstat-label">Activity</div><div class="dstat-val ${item.expenses > 0 ? 'neg' : 'neutral'}">${item.expenses > 0 ? '−' : ''}${fmtFull(item.expenses)}</div></div>
+              <div class="dstat"><div class="dstat-label">Available</div><div class="dstat-val ${item.available < 0 ? 'neg' : item.available === 0 ? 'neutral' : 'pos'}">${item.available < 0 ? '−' : ''}${fmtFull(Math.abs(item.available))}</div></div>
+              ${item.goal > 0 ? `<div class="dstat"><div class="dstat-label">Goal/mo</div><div class="dstat-val neutral">${fmtFull(item.goal)}</div></div>` : ''}
             </div>
-            ${item.txns.length?`
-            <div class="detail-txns-label">Transactions · ${item.txns.length}</div>
-            ${item.txns.sort((a,b)=>b.date-a.date).map(t=>`
-              <div class="detail-txn">
-                <div class="dtxn-left">
-                  <div class="dtxn-merchant">${t.merchant||'—'}</div>
-                  <div class="dtxn-meta">${formatDate(t.date)} · ${t.payment}</div>
-                </div>
-                <div class="dtxn-amt">−${fmtFull(Math.abs(t.amount))}</div>
-              </div>`).join('')}`
-            :`<div class="dtxn-empty">No transactions this month</div>`}
+            ${item.txns.length ? `
+            <div class="detail-txns-title">Transactions · ${item.txns.length}</div>
+            ${item.txns.map(t => `<div class="detail-txn">
+              <div class="dtxn-left">
+                <div class="dtxn-merchant">${t.merchant || '—'}</div>
+                <div class="dtxn-meta">${fmtDate(t.date)} · ${t.payment}</div>
+              </div>
+              <div class="dtxn-amt expense">−${fmtFull(Math.abs(t.amount))}</div>
+            </div>`).join('')}` : `<div class="dtxn-empty">No transactions this month</div>`}
           </div>
         </div>
       </div>`;
-      delay += 25;
+      delay += 20;
     }
-    html += `</div>`;
+    html += `</div></div>`;
   }
 
+  html += `<div class="timestamp" id="plan-ts">${lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString('en-PH', {hour:'2-digit',minute:'2-digit'})}` : ''}</div>`;
   el.innerHTML = html;
+}
+
+function toggleGroup(id) {
+  const cats   = document.getElementById(`cats-${id}`);
+  const toggle = document.getElementById(`toggle-${id}`);
+  if (!cats) return;
+  const collapsed = cats.classList.toggle('collapsed');
+  if (!collapsed) cats.style.maxHeight = cats.scrollHeight + 'px';
+  else cats.style.maxHeight = '';
+  if (toggle) toggle.classList.toggle('collapsed', collapsed);
 }
 
 function togglePanel(id) {
   const panel = document.getElementById(id);
   if (!panel) return;
   const isOpen = panel.classList.contains('open');
-  document.querySelectorAll('.detail-panel.open').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.detail-panel.open').forEach(p => p.classList.remove('open'));
   if (!isOpen) panel.classList.add('open');
+  haptic();
+}
+
+function dismissAlert(cat) {
+  dismissedAlerts.add(cat);
+  const el = document.getElementById(`alert-${cat.replace(/\s/g, '-')}`);
+  if (el) el.remove();
+}
+
+function filterCategories(q) {
+  const query = q.toLowerCase();
+  document.querySelectorAll('.cat-card').forEach(card => {
+    const name = card.querySelector('.cat-name')?.textContent?.toLowerCase() || '';
+    card.style.display = name.includes(query) ? '' : 'none';
+  });
+  document.querySelectorAll('.group-block').forEach(block => {
+    const visible = [...block.querySelectorAll('.cat-card')].some(c => c.style.display !== 'none');
+    block.style.display = visible ? '' : 'none';
+  });
 }
 
 // ── SPENDING TAB ──────────────────────────────────────────────────────────
 function renderSpending() {
-  const el = document.getElementById('spending-content');
-  spendingView = 'months';
-  el.innerHTML = buildSpendingMonths();
-}
-
-function buildSpendingMonths() {
-  const d = parsedData;
-  // Show current month + previous (from all txns)
-  return `
-    <div class="section-label">Monthly</div>
-    <div class="month-summary-card">
-      <div class="month-row" onclick="showSpendingBreakdown('${MONTHS[viewMonth.getMonth()]} ${viewMonth.getFullYear()}', ${d.totalSpent})">
-        <span class="month-row-label">${MONTHS[viewMonth.getMonth()].slice(0,3)} ${viewMonth.getFullYear()}</span>
-        <span>
-          <span class="month-row-amt neg">${fmtFull(d.totalSpent)}</span>
-          <span class="chevron">›</span>
-        </span>
-      </div>
-    </div>`;
-}
-
-function showSpendingBreakdown(label, total) {
   const d  = parsedData;
   const el = document.getElementById('spending-content');
-  const groups = GROUP_ORDER.filter(g=>d.groupSpending[g]>0);
+  const cats = ['All', ...new Set(d.allMonthTxns.filter(t => t.type === 'expense').map(t => t.cat).filter(Boolean))].sort((a,b) => a === 'All' ? -1 : a.localeCompare(b));
 
-  let html = `
-    <div class="back-bar" onclick="renderSpending()"><span class="back-arrow">‹</span> Breakdown</div>
-    <div class="breakdown-card">
-      <div class="breakdown-row" onclick="showGroupTxns('All','all')">
-        <span class="breakdown-name">All</span>
-        <span><span class="breakdown-amt neg">${fmtFull(d.totalSpent)}</span><span class="chevron">›</span></span>
-      </div>
-      ${groups.map(g=>`
-        <div class="breakdown-row" onclick="showGroupTxns('${g}','${g}')">
-          <span class="breakdown-name">${GROUP_NUMS[g]?`${GROUP_NUMS[g]} — `:''}${g}</span>
-          <span><span class="breakdown-amt neg">${fmtFull(d.groupSpending[g])}</span><span class="chevron">›</span></span>
-        </div>`).join('')}
-    </div>`;
+  let txns = d.allMonthTxns.filter(t => t.type !== 'balance');
+  if (spendingFilter !== 'All') txns = txns.filter(t => t.cat === spendingFilter);
+  const totalFiltered = txns.filter(t => t.type === 'expense').reduce((s,t) => s + Math.abs(t.amount), 0);
 
+  let html = `<div class="filter-bar">${cats.slice(0, 12).map(c => `<div class="filter-chip ${c === spendingFilter ? 'active' : ''}" onclick="setSpendingFilter('${c}')">${c}</div>`).join('')}</div>`;
+  html += `<div class="hero-card" style="padding:16px 20px">
+    <div class="hero-glow neg"></div>
+    <div style="position:relative;z-index:1">
+      <div class="hero-meta-label">${spendingFilter === 'All' ? 'Total Spent' : spendingFilter}</div>
+      <div class="hero-amount neg" style="font-size:28px">${fmtFull(totalFiltered)}</div>
+    </div>
+  </div>`;
+  html += buildDateGroupedTxns(txns);
+  html += `<div class="timestamp">${lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}` : ''}</div>`;
   el.innerHTML = html;
 }
 
-function showGroupTxns(label, groupKey) {
-  const d   = parsedData;
-  const txns = groupKey==='all'
-    ? d.monthTxns.filter(t=>t.type!=='Income')
-    : d.monthTxns.filter(t=>t.group===groupKey && t.type!=='Income');
-
-  const el = document.getElementById('spending-content');
-  el.innerHTML = `
-    <div class="back-bar" onclick="showSpendingBreakdown()"><span class="back-arrow">‹</span> ${label}</div>
-    ${buildDateGroupedTxns(txns)}`;
+function setSpendingFilter(cat) {
+  spendingFilter = cat;
+  renderSpending();
+  document.getElementById('page-1').scrollTop = 0;
 }
 
 function buildDateGroupedTxns(txns) {
-  if (!txns.length) return `<div class="state-card"><div class="state-text">No transactions</div></div>`;
-  const sorted = [...txns].sort((a,b)=>b.date-a.date);
+  if (!txns.length) return `<div class="txn-empty">No transactions</div>`;
   const byDate = {};
-  for (const t of sorted) {
-    const key = t.date.toLocaleDateString('en-PH',{month:'numeric',day:'numeric',year:'numeric'});
-    if (!byDate[key]) byDate[key] = [];
-    byDate[key].push(t);
+  for (const t of txns) {
+    const key = t.date ? t.date.toLocaleDateString('en-PH', {month:'numeric',day:'numeric',year:'numeric'}) : '—';
+    if (!byDate[key]) byDate[key] = { txns: [], date: t.date };
+    byDate[key].txns.push(t);
   }
-  return Object.entries(byDate).map(([date, ts],i) => {
-    const dayTotal = ts.reduce((s,t)=>s+t.amount,0);
+  return Object.entries(byDate).map(([dateStr, group], gi) => {
+    const dayTotal = group.txns.reduce((s, t) => s + t.amount, 0);
     return `<div class="date-group">
       <div class="date-group-header">
-        <span class="date-label">${date}</span>
-        <span class="date-total ${dayTotal<0?'neg':'pos'}">${dayTotal<0?'':'+'}${fmtFull(Math.abs(dayTotal))}</span>
+        <span class="date-group-label">${dateStr}</span>
+        <span class="date-group-total ${dayTotal < 0 ? 'neg' : 'pos'}">${dayTotal < 0 ? '−' : '+'}${fmtFull(Math.abs(dayTotal))}</span>
       </div>
       <div class="txn-list">
-        ${ts.map((t,j)=>`
-          <div class="txn-row" style="animation-delay:${(i*3+j)*20}ms">
+        ${group.txns.map((t, i) => {
+          const cls = t.type === 'income' ? 'income' : t.type === 'transfer' ? 'transfer' : 'expense';
+          return `<div class="txn-row" style="animation-delay:${(gi * 3 + i) * 15}ms">
             <div class="txn-left">
-              <div class="txn-merchant">${t.merchant||'—'}</div>
-              <div class="txn-cat">${t.category||t.group||'—'}</div>
+              <div class="txn-merchant">${t.merchant || '—'}</div>
+              <div class="txn-cat">${t.cat || t.group || '—'}</div>
             </div>
-            <div class="txn-amt ${t.amount<0?'expense':'income'}">${t.amount<0?'−':'+'}${fmtFull(Math.abs(t.amount))}</div>
-          </div>`).join('')}
+            <div class="txn-right">
+              <div class="txn-amt ${cls}">${t.amount < 0 ? '−' : '+'}${fmtFull(Math.abs(t.amount))}</div>
+              <div class="txn-via">${t.payment}</div>
+            </div>
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
   }).join('');
@@ -701,107 +1217,211 @@ function buildDateGroupedTxns(txns) {
 
 // ── ACCOUNTS TAB ──────────────────────────────────────────────────────────
 function renderAccounts() {
-  const d   = parsedData;
-  const el  = document.getElementById('accounts-content');
+  const d  = parsedData;
+  const el = document.getElementById('accounts-content');
+  if (accountDetailMode) { renderAccountDetail(accountDetailMode); return; }
 
-  const rows = ACCOUNTS.map(acc => {
-    const txns   = d.accountTxns[acc] || [];
-    const net    = txns.reduce((s,t)=>s+t.amount,0);
-    const balClass = net>0?'pos':net<0?'neg':'zero';
-    return `<div class="account-row" onclick="showAccountTxns('${acc}')">
-      <div>
+  let html = `<div class="net-worth-card">
+    <div class="nw-label">Net Worth</div>
+    <div class="nw-amount">${d.netWorth < 0 ? '−' : ''}${fmtFull(Math.abs(d.netWorth))}</div>
+    <div class="nw-sub">Latest balance across all accounts</div>
+  </div>
+  <div class="section-label">Accounts</div>
+  <div class="account-list">`;
+
+  for (const acc of ACCOUNTS) {
+    const bal    = d.accountBalances[acc] || 0;
+    const txns   = d.txnsByAccount[acc] || [];
+    const balCls = bal > 0 ? 'pos' : bal < 0 ? 'neg' : 'zero';
+    html += `<div class="account-row" onclick="openAccountDetail('${acc}')">
+      <div class="account-left">
         <div class="account-name">${acc}</div>
-        <div class="account-txn-count">${txns.length} txn${txns.length!==1?'s':''} this month</div>
+        <div class="account-meta">${txns.length} txn${txns.length !== 1 ? 's' : ''} this month</div>
       </div>
-      <span>
-        <span class="account-bal ${balClass}">${net<0?'−':net>0?'+':''}${fmtFull(Math.abs(net))}</span>
-        <span class="chevron">›</span>
-      </span>
+      <div class="account-right">
+        <div class="account-bal ${balCls}">${bal < 0 ? '−' : ''}${fmtFull(Math.abs(bal))}</div>
+        <div class="account-chevron">›</div>
+      </div>
     </div>`;
-  }).join('');
+  }
 
-  el.innerHTML = `
-    <div class="section-label">Accounts</div>
-    <div class="account-list">${rows}</div>`;
+  html += `</div><div class="timestamp">${lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}` : ''}</div>`;
+  el.innerHTML = html;
 }
 
-function showAccountTxns(acc) {
+function openAccountDetail(acc) {
+  accountDetailMode = { account: acc, filter: 'all' };
+  renderAccountDetail(accountDetailMode);
+  haptic();
+}
+
+function renderAccountDetail({ account, filter }) {
   const d    = parsedData;
-  const txns = d.accountTxns[acc] || [];
   const el   = document.getElementById('accounts-content');
+  const bal  = d.accountBalances[account] || 0;
+  const allTxns = d.txnsByAccount[account] || [];
+  const txns = filter === 'all' ? allTxns
+    : filter === 'income'  ? allTxns.filter(t => t.type === 'income')
+    : allTxns.filter(t => t.type === 'expense');
 
   el.innerHTML = `
-    <div class="back-bar" onclick="renderAccounts()"><span class="back-arrow">‹</span> ${acc}</div>
-    <div class="section-label">Related Txns · ${txns.length}</div>
-    ${buildDateGroupedTxns(txns)}`;
+    <div class="back-bar" onclick="closeAccountDetail()"><span class="back-arrow">‹</span>${account}</div>
+    <div class="net-worth-card" style="border-radius:14px;padding:14px 16px">
+      <div class="nw-label">Balance</div>
+      <div class="nw-amount" style="font-size:24px">${bal < 0 ? '−' : ''}${fmtFull(Math.abs(bal))}</div>
+    </div>
+    <div class="acc-filter-bar">
+      <div class="acc-filter ${filter==='all'?'active':''}"     onclick="setAccFilter('${account}','all')">All</div>
+      <div class="acc-filter ${filter==='income'?'active':''}"  onclick="setAccFilter('${account}','income')">Income</div>
+      <div class="acc-filter ${filter==='expense'?'active':''}" onclick="setAccFilter('${account}','expense')">Expenses</div>
+    </div>
+    ${buildDateGroupedTxns(txns)}
+    <div class="timestamp">${lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}` : ''}</div>`;
 }
 
-// ── STATUS TAB ────────────────────────────────────────────────────────────
-function renderStatus() {
-  const d   = parsedData;
-  const el  = document.getElementById('status-content');
-  const net = d.totalIncome - d.totalSpent;
-  const savingsRate = d.totalIncome > 0 ? ((net/d.totalIncome)*100).toFixed(1) : 0;
-  const overCats  = d.categories.filter(c=>c.available<0);
-  const warnCats  = d.categories.filter(c=>c.pct>=80&&c.available>=0);
+function setAccFilter(acc, filter) {
+  accountDetailMode = { account: acc, filter };
+  renderAccountDetail(accountDetailMode);
+}
 
-  el.innerHTML = `
-    <div class="section-label">${MONTHS[viewMonth.getMonth()]} ${viewMonth.getFullYear()}</div>
-    <div class="status-card">
-      <div class="status-row"><span class="status-key">Total Income</span><span class="status-val pos">${fmtFull(d.totalIncome)}</span></div>
-      <div class="status-row"><span class="status-key">Total Spent</span><span class="status-val neg">${fmtFull(d.totalSpent)}</span></div>
-      <div class="status-row"><span class="status-key">Net</span><span class="status-val ${net>=0?'pos':'neg'}">${net<0?'−':''}${fmtFull(Math.abs(net))}</span></div>
-      <div class="status-row"><span class="status-key">Savings Rate</span><span class="status-val ${parseFloat(savingsRate)>=20?'pos':parseFloat(savingsRate)>=10?'warn':'neg'}">${savingsRate}%</span></div>
-      <div class="status-row"><span class="status-key">Budgeted</span><span class="status-val">${fmtFull(d.totalBudgeted)}</span></div>
-      <div class="status-row"><span class="status-key">Transactions</span><span class="status-val">${d.monthTxns.length}</span></div>
-    </div>
-    ${overCats.length?`
-    <div class="section-label">⚠ Overspent (${overCats.length})</div>
-    <div class="status-card">
-      ${overCats.map(c=>`<div class="status-row">
-        <span class="status-key">${c.cat}</span>
-        <span class="status-val neg">−${fmtFull(Math.abs(c.available))}</span>
-      </div>`).join('')}
-    </div>`:''}
-    ${warnCats.length?`
-    <div class="section-label">⚡ Almost Out (${warnCats.length})</div>
-    <div class="status-card">
-      ${warnCats.map(c=>`<div class="status-row">
-        <span class="status-key">${c.cat}</span>
-        <span class="status-val warn">${fmtFull(c.available)} left</span>
-      </div>`).join('')}
-    </div>`:''}`;
+function closeAccountDetail() {
+  accountDetailMode = null;
+  renderAccounts();
+}
+
+// ── MORE TAB ──────────────────────────────────────────────────────────────
+function renderMore() {
+  const d  = parsedData;
+  const el = document.getElementById('more-content');
+  const sinkingCats = d.categories.filter(c => c.group === 'Sinking');
+  const goalCats    = d.categories.filter(c => c.group === 'Goals');
+
+  let html = '';
+
+  html += `<div class="section-label">Top Spends This Month</div>
+  <div class="more-card">
+    ${d.top5.length ? d.top5.map((t, i) => `<div class="top5-row">
+      <div class="top5-rank">${i + 1}</div>
+      <div class="top5-left">
+        <div class="top5-merchant">${t.merchant}</div>
+        <div class="top5-cat">${t.cat}</div>
+      </div>
+      <div class="top5-amt">−${fmtFull(t.amount)}</div>
+    </div>`).join('') : `<div class="dtxn-empty">No transactions</div>`}
+  </div>`;
+
+  html += `<div class="section-label">By Merchant</div>
+  <div class="more-card">
+    ${d.merchantSpend.length ? d.merchantSpend.map(m => `<div class="merchant-row">
+      <div class="merchant-name">${m.name}</div>
+      <div class="merchant-right">
+        <div class="merchant-amt">−${fmtFull(m.total)}</div>
+        <div class="merchant-count">${m.count} txn${m.count !== 1 ? 's' : ''}</div>
+      </div>
+    </div>`).join('') : `<div class="dtxn-empty">No data</div>`}
+  </div>`;
+
+  if (sinkingCats.length) {
+    html += `<div class="section-label">Sinking Funds</div>
+    <div class="more-card">
+      ${sinkingCats.map(c => {
+        const pct = c.goal > 0 ? Math.min((c.available / c.goal) * 100, 100) : 0;
+        return `<div class="more-row">
+          <div class="more-row-left">
+            <div class="more-row-name">${c.cat}</div>
+            <div class="more-row-sub">${fmtFull(c.available)} saved · goal ${fmtFull(c.goal)}/mo</div>
+          </div>
+          <div class="more-row-right">
+            <div class="more-row-amt ${c.available < 0 ? 'neg' : 'pos'}">${fmtShort(c.available)}</div>
+            <div class="goal-bar-track"><div class="goal-bar-fill ${pct >= 100 ? 'full' : ''}" style="width:${pct}%"></div></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  if (goalCats.length) {
+    html += `<div class="section-label">Goals</div>
+    <div class="more-card">
+      ${goalCats.map(c => {
+        const pct        = c.goal > 0 ? Math.min((c.available / c.goal) * 100, 100) : 0;
+        const monthsLeft = c.goal > 0 && c.available < c.goal ? Math.ceil((c.goal - c.available) / (c.goal / 12)) : 0;
+        return `<div class="more-row">
+          <div class="more-row-left">
+            <div class="more-row-name">${c.cat}</div>
+            <div class="more-row-sub">${fmtFull(c.available)} of ${fmtFull(c.goal)}${monthsLeft > 0 ? ` · ~${monthsLeft}mo left` : ' · funded'}</div>
+          </div>
+          <div class="more-row-right">
+            <div class="more-row-amt ${pct >= 100 ? 'pos' : 'neutral'}">${Math.round(pct)}%</div>
+            <div class="goal-bar-track"><div class="goal-bar-fill ${pct >= 100 ? 'full' : ''}" style="width:${pct}%"></div></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  html += `<div class="timestamp">${lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}` : ''}</div>`;
+  el.innerHTML = html;
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
-function parseNum(v) { return parseFloat(String(v||'0').replace(/[^0-9.\-]/g,''))||0; }
-
-function parseTxnDate(str) {
-  if (!str) return null;
-  const s = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (s) return new Date(+s[3],+s[1]-1,+s[2]);
-  const i = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (i) return new Date(+i[1],+i[2]-1,+i[3]);
-  return null;
+function parseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  const s = String(v).trim();
+  // M/D/YYYY or MM/DD/YYYY
+  const slash = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slash) return new Date(+slash[3], +slash[1]-1, +slash[2]);
+  // YYYY-MM-DD
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
+  // Google Sheets serial date number (days since Dec 30 1899)
+  if (/^\d+$/.test(s)) {
+    const serial = parseInt(s);
+    if (serial > 40000 && serial < 60000) {
+      const msPerDay = 86400000;
+      const epoch = new Date(Date.UTC(1899, 11, 30));
+      return new Date(epoch.getTime() + serial * msPerDay);
+    }
+  }
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
 }
 
-function formatDate(d) {
-  return d.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
+function parseNum(v) {
+  if (typeof v === 'number') return v;
+  return parseFloat(String(v || '0').replace(/[^0-9.\-]/g, '')) || 0;
 }
 
 function fmtFull(n) {
-  return '₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return '₱' + Math.abs(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function fmtShort(n) {
   const a = Math.abs(n);
-  if (a>=1000) return '₱'+(a/1000).toLocaleString('en-PH',{minimumFractionDigits:1,maximumFractionDigits:1})+'k';
-  return '₱'+a.toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});
+  if (a >= 1000000) return '₱' + (a/1000000).toFixed(1) + 'M';
+  if (a >= 1000)    return '₱' + (a/1000).toFixed(1) + 'k';
+  return '₱' + a.toFixed(0);
+}
+
+function fmt(n) { return fmtFull(n); }
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+}
+
+function haptic() {
+  if (navigator.vibrate) navigator.vibrate(30);
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────
 updateMonthLabel();
-loadData();
+if (!loadFromCache()) {
+  loadData();
+} else {
+  loadData(); // refresh in background
+}
 </script>
 </body>
 </html>
